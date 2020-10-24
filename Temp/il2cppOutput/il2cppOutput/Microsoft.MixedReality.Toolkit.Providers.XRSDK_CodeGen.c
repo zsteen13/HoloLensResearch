@@ -1,0 +1,263 @@
+﻿#include "il2cpp-config.h"
+
+#ifndef _MSC_VER
+# include <alloca.h>
+#else
+# include <malloc.h>
+#endif
+
+
+
+#include "codegen/il2cpp-codegen-metadata.h"
+
+
+
+
+
+IL2CPP_EXTERN_C_BEGIN
+IL2CPP_EXTERN_C_END
+
+
+
+
+// 0x00000001 System.Void Microsoft.MixedReality.Toolkit.XRSDK.GenericXRSDKCameraSettings::.ctor(Microsoft.MixedReality.Toolkit.CameraSystem.IMixedRealityCameraSystem,System.String,System.UInt32,Microsoft.MixedReality.Toolkit.CameraSystem.BaseCameraSettingsProfile)
+extern void GenericXRSDKCameraSettings__ctor_mCC887B49F850D8A7E96F49CCE5F69CA41E79F25F (void);
+// 0x00000002 System.Boolean Microsoft.MixedReality.Toolkit.XRSDK.GenericXRSDKCameraSettings::get_IsOpaque()
+extern void GenericXRSDKCameraSettings_get_IsOpaque_mA9B373F3B6AEA79F10EC9973D1F8291A5E8F6513 (void);
+// 0x00000003 System.Void Microsoft.MixedReality.Toolkit.XRSDK.GenericXRSDKCameraSettings::Enable()
+extern void GenericXRSDKCameraSettings_Enable_m0241047DBEBF731708841BE4CC9122E8727A92B0 (void);
+// 0x00000004 System.Void Microsoft.MixedReality.Toolkit.XRSDK.GenericXRSDKCameraSettings::Disable()
+extern void GenericXRSDKCameraSettings_Disable_mEED5479B66B462926F988065A112568896E62571 (void);
+// 0x00000005 System.Void Microsoft.MixedReality.Toolkit.XRSDK.GenericXRSDKSpatialMeshObserver::.ctor(Microsoft.MixedReality.Toolkit.SpatialAwareness.IMixedRealitySpatialAwarenessSystem,System.String,System.UInt32,Microsoft.MixedReality.Toolkit.BaseMixedRealityProfile)
+extern void GenericXRSDKSpatialMeshObserver__ctor_mCB820C6D221B37CCCD4E5017CB5AFB9219B3BC8A (void);
+// 0x00000006 System.Void Microsoft.MixedReality.Toolkit.XRSDK.GenericXRSDKSpatialMeshObserver::CreateObserver()
+extern void GenericXRSDKSpatialMeshObserver_CreateObserver_mC4F4EEF1741AD081FECB4CD4E13712FD82A29B00 (void);
+// 0x00000007 System.Void Microsoft.MixedReality.Toolkit.XRSDK.GenericXRSDKSpatialMeshObserver::CleanupObserver()
+extern void GenericXRSDKSpatialMeshObserver_CleanupObserver_mF1A730D51F807D580F8F75286B6EC8B85F03AFE6 (void);
+// 0x00000008 System.Int32 Microsoft.MixedReality.Toolkit.XRSDK.GenericXRSDKSpatialMeshObserver::LookupTriangleDensity(Microsoft.MixedReality.Toolkit.SpatialAwareness.SpatialAwarenessMeshLevelOfDetail)
+extern void GenericXRSDKSpatialMeshObserver_LookupTriangleDensity_m0D2C891C5DAA141661D2E726B77F1CE255259703 (void);
+// 0x00000009 System.Boolean Microsoft.MixedReality.Toolkit.XRSDK.GenericXRSDKSpatialMeshObserver::CheckCapability(Microsoft.MixedReality.Toolkit.MixedRealityCapability)
+extern void GenericXRSDKSpatialMeshObserver_CheckCapability_m18ECC5DDB6F2C18C79E057ED507BACF9A0BBD139 (void);
+// 0x0000000A System.Void Microsoft.MixedReality.Toolkit.XRSDK.GenericXRSDKSpatialMeshObserver::Update()
+extern void GenericXRSDKSpatialMeshObserver_Update_mA912BE5796E66CBC01BB95E7AC6B25146495243E (void);
+// 0x0000000B System.Void Microsoft.MixedReality.Toolkit.XRSDK.GenericXRSDKSpatialMeshObserver::Resume()
+extern void GenericXRSDKSpatialMeshObserver_Resume_m398DA31A22B40EFECF7002A6F6BF3636B5E564CA (void);
+// 0x0000000C System.Void Microsoft.MixedReality.Toolkit.XRSDK.GenericXRSDKSpatialMeshObserver::Suspend()
+extern void GenericXRSDKSpatialMeshObserver_Suspend_m14B9E04D996B4823A783C86B01E831BC2B5370A1 (void);
+// 0x0000000D System.Void Microsoft.MixedReality.Toolkit.XRSDK.GenericXRSDKSpatialMeshObserver::ClearObservations()
+extern void GenericXRSDKSpatialMeshObserver_ClearObservations_mE417688FB2DF49BA2096A7C7B9EA5B033B98ACA6 (void);
+// 0x0000000E System.Void Microsoft.MixedReality.Toolkit.XRSDK.GenericXRSDKSpatialMeshObserver::UpdateObserver()
+extern void GenericXRSDKSpatialMeshObserver_UpdateObserver_m581602FA2DDD369E7262FC5F2FFD8ED35B8A3A15 (void);
+// 0x0000000F System.Void Microsoft.MixedReality.Toolkit.XRSDK.GenericXRSDKSpatialMeshObserver::RequestMesh(UnityEngine.XR.MeshId)
+extern void GenericXRSDKSpatialMeshObserver_RequestMesh_mB5B984ED93E86C53A2501D447E92D12DB646CB09 (void);
+// 0x00000010 System.Void Microsoft.MixedReality.Toolkit.XRSDK.GenericXRSDKSpatialMeshObserver::RemoveMeshObject(System.Int32)
+extern void GenericXRSDKSpatialMeshObserver_RemoveMeshObject_m9ADA0405395338ABCC31B73D9513386160D63108 (void);
+// 0x00000011 System.Void Microsoft.MixedReality.Toolkit.XRSDK.GenericXRSDKSpatialMeshObserver::ReclaimMeshObject(Microsoft.MixedReality.Toolkit.SpatialAwareness.SpatialAwarenessMeshObject)
+extern void GenericXRSDKSpatialMeshObserver_ReclaimMeshObject_m8E44AA2BDC3D849FE9735B6BBEDF71E6D28F8E62 (void);
+// 0x00000012 System.Void Microsoft.MixedReality.Toolkit.XRSDK.GenericXRSDKSpatialMeshObserver::ConfigureObserverVolume()
+extern void GenericXRSDKSpatialMeshObserver_ConfigureObserverVolume_m9881F5845F8399437DDC76BF17F41EBD0989E508 (void);
+// 0x00000013 System.Void Microsoft.MixedReality.Toolkit.XRSDK.GenericXRSDKSpatialMeshObserver::UpdateMeshes(System.Collections.Generic.List`1<UnityEngine.XR.MeshInfo>)
+extern void GenericXRSDKSpatialMeshObserver_UpdateMeshes_mB37A933D8368F64146CA3D22DAAB4C64EDCECB7F (void);
+// 0x00000014 System.Void Microsoft.MixedReality.Toolkit.XRSDK.GenericXRSDKSpatialMeshObserver::MeshGenerationAction(UnityEngine.XR.MeshGenerationResult)
+extern void GenericXRSDKSpatialMeshObserver_MeshGenerationAction_mC2930515924545CDCE47DFED88FFB2BA958C3891 (void);
+// 0x00000015 System.Void Microsoft.MixedReality.Toolkit.XRSDK.GenericXRSDKSpatialMeshObserver::.cctor()
+extern void GenericXRSDKSpatialMeshObserver__cctor_mD14AFA935472C5613E2CE82C8D03D98FEF97C091 (void);
+// 0x00000016 System.Void Microsoft.MixedReality.Toolkit.XRSDK.GenericXRSDKSpatialMeshObserver::<RequestMesh>b__22_0(UnityEngine.XR.MeshGenerationResult)
+extern void GenericXRSDKSpatialMeshObserver_U3CRequestMeshU3Eb__22_0_m457B33EABA5DCED3896889A5FD9EDC83EE184F42 (void);
+// 0x00000017 System.Void Microsoft.MixedReality.Toolkit.XRSDK.XRSDKBoundarySystem::.ctor(Microsoft.MixedReality.Toolkit.Boundary.MixedRealityBoundaryVisualizationProfile,Microsoft.MixedReality.Toolkit.Utilities.ExperienceScale)
+extern void XRSDKBoundarySystem__ctor_mD30B4BD82F9841250B947E8411C1BE0737DA8ED8 (void);
+// 0x00000018 System.String Microsoft.MixedReality.Toolkit.XRSDK.XRSDKBoundarySystem::get_Name()
+extern void XRSDKBoundarySystem_get_Name_mB1A3816FB0665179BD7C833B5185DF10D8762048 (void);
+// 0x00000019 System.Void Microsoft.MixedReality.Toolkit.XRSDK.XRSDKBoundarySystem::set_Name(System.String)
+extern void XRSDKBoundarySystem_set_Name_m785A84A41F1CE8D100C257EA525F2C52D25062FD (void);
+// 0x0000001A System.Void Microsoft.MixedReality.Toolkit.XRSDK.XRSDKBoundarySystem::Initialize()
+extern void XRSDKBoundarySystem_Initialize_mD17BF6A18D79A8E319839F80D60A6F0A7539683F (void);
+// 0x0000001B System.Collections.Generic.List`1<UnityEngine.Vector3> Microsoft.MixedReality.Toolkit.XRSDK.XRSDKBoundarySystem::GetBoundaryGeometry()
+extern void XRSDKBoundarySystem_GetBoundaryGeometry_m50C5D1EDA2DFF0CE45E7F88FCA933F0C3273BF7C (void);
+// 0x0000001C System.Void Microsoft.MixedReality.Toolkit.XRSDK.XRSDKBoundarySystem::SetTrackingSpace()
+extern void XRSDKBoundarySystem_SetTrackingSpace_m2EBDBE1B8E5F94CCB1E82017ACCD75B43097ECE7 (void);
+// 0x0000001D UnityEngine.XR.XRInputSubsystem Microsoft.MixedReality.Toolkit.XRSDK.XRSDKSubsystemHelpers::get_InputSubsystem()
+extern void XRSDKSubsystemHelpers_get_InputSubsystem_mBC90C92746F20462A60F95B13B7B7CC8ACA4A0AF (void);
+// 0x0000001E UnityEngine.XR.XRMeshSubsystem Microsoft.MixedReality.Toolkit.XRSDK.XRSDKSubsystemHelpers::get_MeshSubsystem()
+extern void XRSDKSubsystemHelpers_get_MeshSubsystem_mA20937212A21516CDE250A8A5093E3AFB9C037B9 (void);
+// 0x0000001F UnityEngine.XR.XRDisplaySubsystem Microsoft.MixedReality.Toolkit.XRSDK.XRSDKSubsystemHelpers::get_DisplaySubsystem()
+extern void XRSDKSubsystemHelpers_get_DisplaySubsystem_m025414742264B6009136A172E304C8DCE03B98A3 (void);
+// 0x00000020 UnityEngine.XR.Management.XRLoader Microsoft.MixedReality.Toolkit.XRSDK.XRSDKSubsystemHelpers::get_ActiveLoader()
+extern void XRSDKSubsystemHelpers_get_ActiveLoader_m08C50C0631D3CF2F429825545B94195C22C17146 (void);
+// 0x00000021 System.Void Microsoft.MixedReality.Toolkit.XRSDK.XRSDKSubsystemHelpers::.cctor()
+extern void XRSDKSubsystemHelpers__cctor_m316889237422147B221CE92ABEEED0BDA33A53B2 (void);
+// 0x00000022 System.Void Microsoft.MixedReality.Toolkit.XRSDK.Input.GenericXRSDKController::.ctor(Microsoft.MixedReality.Toolkit.TrackingState,Microsoft.MixedReality.Toolkit.Utilities.Handedness,Microsoft.MixedReality.Toolkit.Input.IMixedRealityInputSource,Microsoft.MixedReality.Toolkit.Input.MixedRealityInteractionMapping[])
+extern void GenericXRSDKController__ctor_m7EB531B32EEFD08A679EE52A5AC21C4359862C7B (void);
+// 0x00000023 Microsoft.MixedReality.Toolkit.Input.MixedRealityInteractionMapping[] Microsoft.MixedReality.Toolkit.XRSDK.Input.GenericXRSDKController::get_DefaultLeftHandedInteractions()
+extern void GenericXRSDKController_get_DefaultLeftHandedInteractions_m2ED117F3F57E729C675AA2652719ED71B6B28B32 (void);
+// 0x00000024 Microsoft.MixedReality.Toolkit.Input.MixedRealityInteractionMapping[] Microsoft.MixedReality.Toolkit.XRSDK.Input.GenericXRSDKController::get_DefaultRightHandedInteractions()
+extern void GenericXRSDKController_get_DefaultRightHandedInteractions_m561D67C332A82CDB73FA9F5D3C263CE6BA3D3A0C (void);
+// 0x00000025 System.Void Microsoft.MixedReality.Toolkit.XRSDK.Input.GenericXRSDKController::UpdateController(UnityEngine.XR.InputDevice)
+extern void GenericXRSDKController_UpdateController_m83F4611E17EC51F314699D0470A8F8873D95F7B0 (void);
+// 0x00000026 System.Void Microsoft.MixedReality.Toolkit.XRSDK.Input.GenericXRSDKController::UpdateButtonData(Microsoft.MixedReality.Toolkit.Input.MixedRealityInteractionMapping,UnityEngine.XR.InputDevice)
+extern void GenericXRSDKController_UpdateButtonData_m8FAC001534706180722AE53A219DF710E8614E0E (void);
+// 0x00000027 System.Void Microsoft.MixedReality.Toolkit.XRSDK.Input.GenericXRSDKController::UpdateSingleAxisData(Microsoft.MixedReality.Toolkit.Input.MixedRealityInteractionMapping,UnityEngine.XR.InputDevice)
+extern void GenericXRSDKController_UpdateSingleAxisData_m796604A9417D10BECA0412FA95BB3C3B43AE6252 (void);
+// 0x00000028 System.Void Microsoft.MixedReality.Toolkit.XRSDK.Input.GenericXRSDKController::UpdateDualAxisData(Microsoft.MixedReality.Toolkit.Input.MixedRealityInteractionMapping,UnityEngine.XR.InputDevice)
+extern void GenericXRSDKController_UpdateDualAxisData_m3D475831DEC8C0C4A3B061CA200E75764695F0B0 (void);
+// 0x00000029 System.Void Microsoft.MixedReality.Toolkit.XRSDK.Input.GenericXRSDKController::UpdatePoseData(Microsoft.MixedReality.Toolkit.Input.MixedRealityInteractionMapping,UnityEngine.XR.InputDevice)
+extern void GenericXRSDKController_UpdatePoseData_m639A08880C377467E92417AB6D37129CA3E36A37 (void);
+// 0x0000002A System.Void Microsoft.MixedReality.Toolkit.XRSDK.Input.GenericXRSDKController::.cctor()
+extern void GenericXRSDKController__cctor_m30F5F7319897FF18DE070F0AEDE0375FA3A7ADB0 (void);
+// 0x0000002B System.Void Microsoft.MixedReality.Toolkit.XRSDK.Input.XRSDKDeviceManager::.ctor(Microsoft.MixedReality.Toolkit.Input.IMixedRealityInputSystem,System.String,System.UInt32,Microsoft.MixedReality.Toolkit.BaseMixedRealityProfile)
+extern void XRSDKDeviceManager__ctor_mFFC1C93AB179D3159AC4E03B35AED222A7E91758 (void);
+// 0x0000002C System.Boolean Microsoft.MixedReality.Toolkit.XRSDK.Input.XRSDKDeviceManager::CheckCapability(Microsoft.MixedReality.Toolkit.MixedRealityCapability)
+extern void XRSDKDeviceManager_CheckCapability_mAF5BCD772E5BDA8494EF08B2C3687D284F461781 (void);
+// 0x0000002D System.Void Microsoft.MixedReality.Toolkit.XRSDK.Input.XRSDKDeviceManager::Update()
+extern void XRSDKDeviceManager_Update_m0B7E8727C3D9F3D394F213390B5FF7ED522E93AD (void);
+// 0x0000002E Microsoft.MixedReality.Toolkit.XRSDK.Input.GenericXRSDKController Microsoft.MixedReality.Toolkit.XRSDK.Input.XRSDKDeviceManager::GetOrAddController(UnityEngine.XR.InputDevice)
+extern void XRSDKDeviceManager_GetOrAddController_m25D977CD5C8C9CFD7258A248408C959BC7456BEC (void);
+// 0x0000002F System.Void Microsoft.MixedReality.Toolkit.XRSDK.Input.XRSDKDeviceManager::RemoveController(UnityEngine.XR.InputDevice)
+extern void XRSDKDeviceManager_RemoveController_mDEC3AF7BE1D7AECF5E6C66B6DBBBD0A14705A1F9 (void);
+// 0x00000030 System.Type Microsoft.MixedReality.Toolkit.XRSDK.Input.XRSDKDeviceManager::GetControllerType(Microsoft.MixedReality.Toolkit.Input.SupportedControllerType)
+extern void XRSDKDeviceManager_GetControllerType_m7F0A4C7BF57EEA6E14EB4043B2E7542655520617 (void);
+// 0x00000031 Microsoft.MixedReality.Toolkit.Input.InputSourceType Microsoft.MixedReality.Toolkit.XRSDK.Input.XRSDKDeviceManager::GetInputSourceType(Microsoft.MixedReality.Toolkit.Input.SupportedControllerType)
+extern void XRSDKDeviceManager_GetInputSourceType_m769C681477B1B8CAABB5FA74E44C72B97EA0D381 (void);
+// 0x00000032 Microsoft.MixedReality.Toolkit.Input.SupportedControllerType Microsoft.MixedReality.Toolkit.XRSDK.Input.XRSDKDeviceManager::GetCurrentControllerType(UnityEngine.XR.InputDevice)
+extern void XRSDKDeviceManager_GetCurrentControllerType_mC9A230CF6BD8F4340418EBE4A19C1BEC5AE34559 (void);
+// 0x00000033 System.Void Microsoft.MixedReality.Toolkit.XRSDK.Input.XRSDKDeviceManager::.cctor()
+extern void XRSDKDeviceManager__cctor_m3524B6A90A180AB76767F18F0ED3A496B9338E9A (void);
+// 0x00000034 UnityEngine.Pose Microsoft.MixedReality.Toolkit.XRSDK.GenericXRSDKSpatialMeshObserver_PlayspaceAdapter::Concatenate(UnityEngine.Pose,UnityEngine.Pose)
+extern void PlayspaceAdapter_Concatenate_m197A96786BDFE89CC0B7A6B79C0161249DA09424 (void);
+// 0x00000035 System.Void Microsoft.MixedReality.Toolkit.XRSDK.GenericXRSDKSpatialMeshObserver_PlayspaceAdapter::Update()
+extern void PlayspaceAdapter_Update_m2156542D0246ED84F2F78282B67D0320C2D77F1B (void);
+// 0x00000036 System.Void Microsoft.MixedReality.Toolkit.XRSDK.GenericXRSDKSpatialMeshObserver_PlayspaceAdapter::.ctor()
+extern void PlayspaceAdapter__ctor_mA7FAE865F948FCEB494498E463593D2C6F7A4ED4 (void);
+// 0x00000037 System.Void Microsoft.MixedReality.Toolkit.XRSDK.GenericXRSDKSpatialMeshObserver_PlayspaceAdapter::.cctor()
+extern void PlayspaceAdapter__cctor_mD4C50D8AE5BD06AEAD0EF836E001A31A8153383A (void);
+static Il2CppMethodPointer s_methodPointers[55] = 
+{
+	GenericXRSDKCameraSettings__ctor_mCC887B49F850D8A7E96F49CCE5F69CA41E79F25F,
+	GenericXRSDKCameraSettings_get_IsOpaque_mA9B373F3B6AEA79F10EC9973D1F8291A5E8F6513,
+	GenericXRSDKCameraSettings_Enable_m0241047DBEBF731708841BE4CC9122E8727A92B0,
+	GenericXRSDKCameraSettings_Disable_mEED5479B66B462926F988065A112568896E62571,
+	GenericXRSDKSpatialMeshObserver__ctor_mCB820C6D221B37CCCD4E5017CB5AFB9219B3BC8A,
+	GenericXRSDKSpatialMeshObserver_CreateObserver_mC4F4EEF1741AD081FECB4CD4E13712FD82A29B00,
+	GenericXRSDKSpatialMeshObserver_CleanupObserver_mF1A730D51F807D580F8F75286B6EC8B85F03AFE6,
+	GenericXRSDKSpatialMeshObserver_LookupTriangleDensity_m0D2C891C5DAA141661D2E726B77F1CE255259703,
+	GenericXRSDKSpatialMeshObserver_CheckCapability_m18ECC5DDB6F2C18C79E057ED507BACF9A0BBD139,
+	GenericXRSDKSpatialMeshObserver_Update_mA912BE5796E66CBC01BB95E7AC6B25146495243E,
+	GenericXRSDKSpatialMeshObserver_Resume_m398DA31A22B40EFECF7002A6F6BF3636B5E564CA,
+	GenericXRSDKSpatialMeshObserver_Suspend_m14B9E04D996B4823A783C86B01E831BC2B5370A1,
+	GenericXRSDKSpatialMeshObserver_ClearObservations_mE417688FB2DF49BA2096A7C7B9EA5B033B98ACA6,
+	GenericXRSDKSpatialMeshObserver_UpdateObserver_m581602FA2DDD369E7262FC5F2FFD8ED35B8A3A15,
+	GenericXRSDKSpatialMeshObserver_RequestMesh_mB5B984ED93E86C53A2501D447E92D12DB646CB09,
+	GenericXRSDKSpatialMeshObserver_RemoveMeshObject_m9ADA0405395338ABCC31B73D9513386160D63108,
+	GenericXRSDKSpatialMeshObserver_ReclaimMeshObject_m8E44AA2BDC3D849FE9735B6BBEDF71E6D28F8E62,
+	GenericXRSDKSpatialMeshObserver_ConfigureObserverVolume_m9881F5845F8399437DDC76BF17F41EBD0989E508,
+	GenericXRSDKSpatialMeshObserver_UpdateMeshes_mB37A933D8368F64146CA3D22DAAB4C64EDCECB7F,
+	GenericXRSDKSpatialMeshObserver_MeshGenerationAction_mC2930515924545CDCE47DFED88FFB2BA958C3891,
+	GenericXRSDKSpatialMeshObserver__cctor_mD14AFA935472C5613E2CE82C8D03D98FEF97C091,
+	GenericXRSDKSpatialMeshObserver_U3CRequestMeshU3Eb__22_0_m457B33EABA5DCED3896889A5FD9EDC83EE184F42,
+	XRSDKBoundarySystem__ctor_mD30B4BD82F9841250B947E8411C1BE0737DA8ED8,
+	XRSDKBoundarySystem_get_Name_mB1A3816FB0665179BD7C833B5185DF10D8762048,
+	XRSDKBoundarySystem_set_Name_m785A84A41F1CE8D100C257EA525F2C52D25062FD,
+	XRSDKBoundarySystem_Initialize_mD17BF6A18D79A8E319839F80D60A6F0A7539683F,
+	XRSDKBoundarySystem_GetBoundaryGeometry_m50C5D1EDA2DFF0CE45E7F88FCA933F0C3273BF7C,
+	XRSDKBoundarySystem_SetTrackingSpace_m2EBDBE1B8E5F94CCB1E82017ACCD75B43097ECE7,
+	XRSDKSubsystemHelpers_get_InputSubsystem_mBC90C92746F20462A60F95B13B7B7CC8ACA4A0AF,
+	XRSDKSubsystemHelpers_get_MeshSubsystem_mA20937212A21516CDE250A8A5093E3AFB9C037B9,
+	XRSDKSubsystemHelpers_get_DisplaySubsystem_m025414742264B6009136A172E304C8DCE03B98A3,
+	XRSDKSubsystemHelpers_get_ActiveLoader_m08C50C0631D3CF2F429825545B94195C22C17146,
+	XRSDKSubsystemHelpers__cctor_m316889237422147B221CE92ABEEED0BDA33A53B2,
+	GenericXRSDKController__ctor_m7EB531B32EEFD08A679EE52A5AC21C4359862C7B,
+	GenericXRSDKController_get_DefaultLeftHandedInteractions_m2ED117F3F57E729C675AA2652719ED71B6B28B32,
+	GenericXRSDKController_get_DefaultRightHandedInteractions_m561D67C332A82CDB73FA9F5D3C263CE6BA3D3A0C,
+	GenericXRSDKController_UpdateController_m83F4611E17EC51F314699D0470A8F8873D95F7B0,
+	GenericXRSDKController_UpdateButtonData_m8FAC001534706180722AE53A219DF710E8614E0E,
+	GenericXRSDKController_UpdateSingleAxisData_m796604A9417D10BECA0412FA95BB3C3B43AE6252,
+	GenericXRSDKController_UpdateDualAxisData_m3D475831DEC8C0C4A3B061CA200E75764695F0B0,
+	GenericXRSDKController_UpdatePoseData_m639A08880C377467E92417AB6D37129CA3E36A37,
+	GenericXRSDKController__cctor_m30F5F7319897FF18DE070F0AEDE0375FA3A7ADB0,
+	XRSDKDeviceManager__ctor_mFFC1C93AB179D3159AC4E03B35AED222A7E91758,
+	XRSDKDeviceManager_CheckCapability_mAF5BCD772E5BDA8494EF08B2C3687D284F461781,
+	XRSDKDeviceManager_Update_m0B7E8727C3D9F3D394F213390B5FF7ED522E93AD,
+	XRSDKDeviceManager_GetOrAddController_m25D977CD5C8C9CFD7258A248408C959BC7456BEC,
+	XRSDKDeviceManager_RemoveController_mDEC3AF7BE1D7AECF5E6C66B6DBBBD0A14705A1F9,
+	XRSDKDeviceManager_GetControllerType_m7F0A4C7BF57EEA6E14EB4043B2E7542655520617,
+	XRSDKDeviceManager_GetInputSourceType_m769C681477B1B8CAABB5FA74E44C72B97EA0D381,
+	XRSDKDeviceManager_GetCurrentControllerType_mC9A230CF6BD8F4340418EBE4A19C1BEC5AE34559,
+	XRSDKDeviceManager__cctor_m3524B6A90A180AB76767F18F0ED3A496B9338E9A,
+	PlayspaceAdapter_Concatenate_m197A96786BDFE89CC0B7A6B79C0161249DA09424,
+	PlayspaceAdapter_Update_m2156542D0246ED84F2F78282B67D0320C2D77F1B,
+	PlayspaceAdapter__ctor_mA7FAE865F948FCEB494498E463593D2C6F7A4ED4,
+	PlayspaceAdapter__cctor_mD4C50D8AE5BD06AEAD0EF836E001A31A8153383A,
+};
+static const int32_t s_InvokerIndices[55] = 
+{
+	1011,
+	102,
+	23,
+	23,
+	1011,
+	23,
+	23,
+	37,
+	30,
+	23,
+	23,
+	23,
+	23,
+	23,
+	2271,
+	32,
+	26,
+	23,
+	26,
+	2272,
+	3,
+	2272,
+	124,
+	14,
+	26,
+	23,
+	14,
+	23,
+	4,
+	4,
+	4,
+	4,
+	3,
+	1879,
+	14,
+	14,
+	2274,
+	2275,
+	2275,
+	2275,
+	2275,
+	3,
+	1011,
+	30,
+	23,
+	2276,
+	2274,
+	34,
+	37,
+	2277,
+	3,
+	2273,
+	23,
+	23,
+	3,
+};
+extern const Il2CppCodeGenModule g_Microsoft_MixedReality_Toolkit_Providers_XRSDKCodeGenModule;
+const Il2CppCodeGenModule g_Microsoft_MixedReality_Toolkit_Providers_XRSDKCodeGenModule = 
+{
+	"Microsoft.MixedReality.Toolkit.Providers.XRSDK.dll",
+	55,
+	s_methodPointers,
+	s_InvokerIndices,
+	0,
+	NULL,
+	0,
+	NULL,
+	0,
+	NULL,
+	NULL,
+};
