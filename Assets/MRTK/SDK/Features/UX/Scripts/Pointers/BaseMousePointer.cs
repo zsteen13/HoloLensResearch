@@ -1,9 +1,8 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
-using Microsoft.MixedReality.Toolkit.Utilities;
-using Unity.Profiling;
 using UnityEngine;
+using Microsoft.MixedReality.Toolkit.Utilities;
 
 namespace Microsoft.MixedReality.Toolkit.Input
 {
@@ -79,41 +78,31 @@ namespace Microsoft.MixedReality.Toolkit.Input
 
         #region IMixedRealitySourcePoseHandler Implementation
 
-        private static readonly ProfilerMarker OnSourceDetectedPerfMarker = new ProfilerMarker("[MRTK] BaseMousePointer.OnSourceDetected");
-
         /// <inheritdoc />
         public override void OnSourceDetected(SourceStateEventData eventData)
         {
-            using (OnSourceDetectedPerfMarker.Auto())
+            if (RayStabilizer != null)
             {
-                if (RayStabilizer != null)
-                {
-                    RayStabilizer = null;
-                }
+                RayStabilizer = null;
+            }
 
-                base.OnSourceDetected(eventData);
+            base.OnSourceDetected(eventData);
 
-                if (eventData.SourceId == Controller?.InputSource.SourceId)
-                {
-                    isInteractionEnabled = true;
-                }
+            if (eventData.SourceId == Controller?.InputSource.SourceId)
+            {
+                isInteractionEnabled = true;
             }
         }
 
 
-        private static readonly ProfilerMarker OnSourceLostPerfMarker = new ProfilerMarker("[MRTK] BaseMousePointer.OnSourceLost");
-
         /// <inheritdoc />
         public override void OnSourceLost(SourceStateEventData eventData)
         {
-            using (OnSourceLostPerfMarker.Auto())
-            {
-                base.OnSourceLost(eventData);
+            base.OnSourceLost(eventData);
 
-                if (eventData.SourceId == Controller?.InputSource.SourceId)
-                {
-                    isInteractionEnabled = false;
-                }
+            if (eventData.SourceId == Controller?.InputSource.SourceId)
+            {
+                isInteractionEnabled = false;
             }
         }
 
@@ -121,56 +110,41 @@ namespace Microsoft.MixedReality.Toolkit.Input
 
         #region IMixedRealityInputHandler Implementation
 
-        private static readonly ProfilerMarker OnInputDownPerfMarker = new ProfilerMarker("[MRTK] BaseMousePointer.OnInputDown");
-
         /// <inheritdoc />
         public override void OnInputDown(InputEventData eventData)
         {
-            using (OnInputDownPerfMarker.Auto())
-            {
-                cursorWasDisabledOnDown = isDisabled;
+            cursorWasDisabledOnDown = isDisabled;
 
-                if (cursorWasDisabledOnDown)
-                {
-                    ResetCursor();
-                }
-                else
-                {
-                    base.OnInputDown(eventData);
-                }
+            if (cursorWasDisabledOnDown)
+            {
+                ResetCursor();
+            }
+            else
+            {
+                base.OnInputDown(eventData);
             }
         }
-
-        private static readonly ProfilerMarker OnInputUpPerfMarker = new ProfilerMarker("[MRTK] BaseMousePointer.OnInputUp");
 
         /// <inheritdoc />
         public override void OnInputUp(InputEventData eventData)
         {
-            using (OnInputUpPerfMarker.Auto())
-            { 
-                if (!cursorWasDisabledOnDown)
-                {
-                    base.OnInputUp(eventData);
+            if (!cursorWasDisabledOnDown)
+            {
+                base.OnInputUp(eventData);
 
-                    if (isDisabled)
-                    {
-                        ResetCursor();
-                    }
+                if (isDisabled)
+                {
+                    ResetCursor();
                 }
             }
         }
 
         #endregion IMixedRealityInputHandler Implementation
 
-        private static readonly ProfilerMarker ResetCursorPerfMarker = new ProfilerMarker("[MRTK] BaseMousePointer.ResetCursor");
-
         private void ResetCursor()
         {
-            using (ResetCursorPerfMarker.Auto())
-            {
-                SetVisibility(true);
-                transform.rotation = CameraCache.Main.transform.rotation;
-            }
+            SetVisibility(true);
+            transform.rotation = CameraCache.Main.transform.rotation;
         }
 
         #region MonoBehaviour Implementation
@@ -196,21 +170,16 @@ namespace Microsoft.MixedReality.Toolkit.Input
             }
         }
 
-        private static readonly ProfilerMarker UpdatePerfMarker = new ProfilerMarker("[MRTK] BaseMousePointer.Update");
-
         private void Update()
         {
-            using (UpdatePerfMarker.Auto())
+            if (!hideCursorWhenInactive || isDisabled) { return; }
+
+            timeoutTimer += Time.unscaledDeltaTime;
+
+            if (timeoutTimer >= hideTimeout)
             {
-                if (!hideCursorWhenInactive || isDisabled) { return; }
-
-                timeoutTimer += Time.unscaledDeltaTime;
-
-                if (timeoutTimer >= hideTimeout)
-                {
-                    timeoutTimer = 0.0f;
-                    SetVisibility(false);
-                }
+                timeoutTimer = 0.0f;
+                SetVisibility(false);
             }
         }
 

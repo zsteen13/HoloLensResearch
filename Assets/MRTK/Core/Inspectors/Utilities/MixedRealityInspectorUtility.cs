@@ -12,6 +12,7 @@ using Object = UnityEngine.Object;
 
 namespace Microsoft.MixedReality.Toolkit.Utilities.Editor
 {
+
     /// <summary>
     /// This class has handy inspector utilities and functions.
     /// </summary>

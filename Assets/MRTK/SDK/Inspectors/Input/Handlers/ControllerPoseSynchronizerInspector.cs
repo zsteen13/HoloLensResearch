@@ -4,7 +4,6 @@
 using Microsoft.MixedReality.Toolkit.Utilities;
 using Microsoft.MixedReality.Toolkit.Utilities.Editor;
 using UnityEditor;
-using UnityEngine;
 
 namespace Microsoft.MixedReality.Toolkit.Input.Editor
 {
@@ -12,6 +11,7 @@ namespace Microsoft.MixedReality.Toolkit.Input.Editor
     public class ControllerPoseSynchronizerInspector : UnityEditor.Editor
     {
         private const string SynchronizationSettingsKey = "MRTK_Inspector_SynchronizationSettingsFoldout";
+        private static readonly string[] HandednessLabels = { "Left", "Right" };
 
         private static bool synchronizationSettingsFoldout = true;
 
@@ -58,14 +58,17 @@ namespace Microsoft.MixedReality.Toolkit.Input.Editor
             {
                 if (DrawHandednessProperty)
                 {
-                    Rect position = EditorGUILayout.GetControlRect();
-                    var label = new GUIContent(handedness.displayName);
-                    using (new EditorGUI.PropertyScope(position, label, handedness))
-                    {
-                        var currentHandedness = (Handedness)handedness.enumValueIndex;
+                    var currentHandedness = (Handedness)handedness.enumValueIndex;
+                    var handIndex = currentHandedness == Handedness.Right ? 1 : 0;
 
-                        handedness.enumValueIndex = (int)(Handedness)EditorGUI.EnumPopup(position, label, currentHandedness,
-                            (value) => { return (Handedness)value == Handedness.Left || (Handedness)value == Handedness.Right; });
+                    using (var c = new EditorGUI.ChangeCheckScope())
+                    {
+                        var newHandednessIndex = EditorGUILayout.Popup(handedness.displayName, handIndex, HandednessLabels);
+                        if (c.changed)
+                        {
+                            currentHandedness = newHandednessIndex == 0 ? Handedness.Left : Handedness.Right;
+                            handedness.enumValueIndex = (int)currentHandedness;
+                        }
                     }
                 }
 

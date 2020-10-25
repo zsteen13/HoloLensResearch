@@ -12,7 +12,7 @@ namespace Microsoft.MixedReality.Toolkit.UI
     /// </summary>
     public class InteractableGrabScaleTheme : InteractableThemeBase
     {
-        protected Vector3 originalLocalScale = Vector3.zero;
+        protected ThemePropertyValue startScaleValue = new ThemePropertyValue();
 
         protected float timer = 0;
         protected bool hasGrab;
@@ -65,21 +65,15 @@ namespace Microsoft.MixedReality.Toolkit.UI
         /// <inheritdoc />
         public override void Init(GameObject host, ThemeDefinition settings)
         {
+            base.Init(host, settings);
+
             if (host != null)
             {
-                originalLocalScale = host.transform.localScale;
-
-#pragma warning disable 0618
-                // Keep initializing property to support consumers who have not migrated.
                 startScaleValue = new ThemePropertyValue();
                 startScaleValue.Vector3 = host.transform.localScale;
-#pragma warning restore 0618
-
             }
 
             timer = Ease.LerpTime;
-
-            base.Init(host, settings);
         }
 
         /// <inheritdoc />
@@ -87,10 +81,7 @@ namespace Microsoft.MixedReality.Toolkit.UI
         {
             if (Host == null)
             {
-                return new ThemePropertyValue()
-                {
-                    Vector3 = originalLocalScale
-                };
+                return startScaleValue;
             }
 
             ThemePropertyValue prop = new ThemePropertyValue();
@@ -108,10 +99,10 @@ namespace Microsoft.MixedReality.Toolkit.UI
             {
                 return;
             }
-
+            
             Vector3 maxGrabScale = Properties[0].Value.Vector3;
             float grabTime = Properties[1].Value.Float;
-            Vector3 grabScale = Vector3.Scale(originalLocalScale, maxGrabScale);
+            Vector3 grabScale = Vector3.Scale(startScaleValue.Vector3, maxGrabScale);
 
             var targetInteractable = Host.FindAncestorComponent<Interactable>(true);
 
@@ -124,7 +115,7 @@ namespace Microsoft.MixedReality.Toolkit.UI
 
                 timer += Time.deltaTime;
                 grabPercentage = Mathf.Clamp01(timer / grabTime);
-                Host.transform.localScale = Vector3.Lerp(originalLocalScale, grabScale, grabPercentage);
+                Host.transform.localScale = Vector3.Lerp(startScaleValue.Vector3, grabScale, grabPercentage);
                 hasGrab = true;
                 grabTransition = true;
             }
@@ -136,7 +127,7 @@ namespace Microsoft.MixedReality.Toolkit.UI
                     grabTransition = false;
                     if (!Ease.Enabled)
                     {
-                        Host.transform.localScale = originalLocalScale;
+                        Host.transform.localScale = startScaleValue.Vector3;
                         grabPercentage = 0;
                     }
                     else
@@ -148,7 +139,7 @@ namespace Microsoft.MixedReality.Toolkit.UI
                 {
                     timer += Time.deltaTime;
                     float percent = 1 - Mathf.Clamp01(timer / Ease.LerpTime);
-                    Host.transform.localScale = Vector3.Lerp(originalLocalScale, grabScale, Ease.Curve.Evaluate(percent));
+                    Host.transform.localScale = Vector3.Lerp(startScaleValue.Vector3, grabScale, Ease.Curve.Evaluate(percent));
                 }
 
                 // is there a transition from physical press?
@@ -161,7 +152,7 @@ namespace Microsoft.MixedReality.Toolkit.UI
         {
             if (!hasGrab && Host != null)
             {
-                Host.transform.localScale = Vector3.Lerp(property.StartValue.Vector3, Vector3.Scale(originalLocalScale, property.Values[index].Vector3), percentage);
+                Host.transform.localScale = Vector3.Lerp(property.StartValue.Vector3, Vector3.Scale(startScaleValue.Vector3, property.Values[index].Vector3), percentage);
             }
             else
             {
@@ -169,21 +160,5 @@ namespace Microsoft.MixedReality.Toolkit.UI
                 Ease.Stop();
             }
         }
-
-        /// <inheritdoc />
-        protected override void SetValue(ThemeStateProperty property, ThemePropertyValue value)
-        {
-            if (Host != null)
-            {
-                Host.transform.localScale = value.Vector3;
-            }
-        }
-
-        #region Obsolete
-        
-        [System.Obsolete("startScaleValue is no longer supported. Use originalLocalScale instead.")]
-        protected ThemePropertyValue startScaleValue = new ThemePropertyValue();
-
-        #endregion
     }
 }

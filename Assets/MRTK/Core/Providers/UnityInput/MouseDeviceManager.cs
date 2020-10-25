@@ -3,7 +3,6 @@
 
 using Microsoft.MixedReality.Toolkit.Physics;
 using Microsoft.MixedReality.Toolkit.Utilities;
-using Unity.Profiling;
 using UnityEngine;
 using UInput = UnityEngine.Input;
 
@@ -15,7 +14,7 @@ namespace Microsoft.MixedReality.Toolkit.Input.UnityInput
         "Unity Mouse Device Manager",
         "Profiles/DefaultMixedRealityMouseInputProfile.asset",
         "MixedRealityToolkit.SDK",
-        requiresProfile: true)]
+        requiresProfile: true)]  
     public class MouseDeviceManager : BaseInputDeviceManager, IMixedRealityMouseDeviceManager
     {
         /// <summary>
@@ -131,7 +130,7 @@ namespace Microsoft.MixedReality.Toolkit.Input.UnityInput
             {
                 Handedness[] handednesses = controllerAttribute.SupportedHandedness;
                 Debug.Assert(
-                    handednesses.Length == 1 && handednesses[0] == Handedness.Any,
+                    handednesses.Length == 1 && handednesses[0] == Handedness.Any, 
                     "Unexpected mouse handedness declared in MixedRealityControllerAttribute");
             }
 
@@ -151,22 +150,18 @@ namespace Microsoft.MixedReality.Toolkit.Input.UnityInput
                 }
             }
 
+            Controller.SetupConfiguration(typeof(MouseController));
             Service?.RaiseSourceDetected(Controller.InputSource, Controller);
         }
-
-        private static readonly ProfilerMarker UpdatePerfMarker = new ProfilerMarker("[MRTK] MouseDeviceManager.Update");
 
         /// <inheritdoc />
         public override void Update()
         {
-            using (UpdatePerfMarker.Auto())
-            {
-                base.Update();
+            base.Update();
 
-                if (UInput.mousePresent && Controller == null) { Enable(); }
+            if (UInput.mousePresent && Controller == null) { Enable(); }
 
-                Controller?.Update();
-            }
+            Controller?.Update();
         }
 
         /// <inheritdoc />
@@ -177,7 +172,7 @@ namespace Microsoft.MixedReality.Toolkit.Input.UnityInput
             if (Controller != null)
             {
                 Service?.RaiseSourceLost(Controller.InputSource, Controller);
-
+                
                 RecyclePointers(Controller.InputSource);
 
                 Controller = null;

@@ -2,7 +2,13 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using Microsoft.MixedReality.Toolkit.Input;
+using Microsoft.MixedReality.Toolkit.Physics;
+using Microsoft.MixedReality.Toolkit.Utilities;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 namespace Microsoft.MixedReality.Toolkit.UI
 {
@@ -10,7 +16,6 @@ namespace Microsoft.MixedReality.Toolkit.UI
     /// This script provides cursor context for the manipulation handler
     /// </summary>
     [AddComponentMenu("Scripts/MRTK/SDK/CursorContextManipulationHandler")]
-    [RequireComponent(typeof(ManipulationHandler))]
     public class CursorContextManipulationHandler : MonoBehaviour
     {
         private ManipulationHandler manipulationHandler;

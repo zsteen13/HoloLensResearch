@@ -72,13 +72,10 @@ namespace Microsoft.MixedReality.Toolkit.Input
             get { return isInteractionEnabled && IsActive; }
             set
             {
-                if (isInteractionEnabled != value)
+                isInteractionEnabled = value;
+                if (BaseCursor != null)
                 {
-                    isInteractionEnabled = value;
-                    if (BaseCursor != null)
-                    {
-                        BaseCursor.SetVisibility(value);
-                    }
+                    BaseCursor.SetVisibility(value);
                 }
             }
         }

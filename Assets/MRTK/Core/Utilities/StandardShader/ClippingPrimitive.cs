@@ -12,7 +12,6 @@ namespace Microsoft.MixedReality.Toolkit.Utilities
     /// used to drive per pixel based clipping.
     /// </summary>
     [ExecuteAlways]
-    [HelpURL("https://microsoft.github.io/MixedRealityToolkit-Unity/Documentation/Rendering/ClippingPrimitive.html")]
     public abstract class ClippingPrimitive : MonoBehaviour, IMaterialInstanceOwner
     {
         [Tooltip("The renderer(s) that should be affected by the primitive.")]
@@ -34,8 +33,8 @@ namespace Microsoft.MixedReality.Toolkit.Utilities
         /// </summary>
         public Side ClippingSide
         {
-            get => clippingSide;
-            set => clippingSide = value;
+            get { return clippingSide; }
+            set { clippingSide = value; }
         }
 
         [SerializeField]
@@ -50,7 +49,7 @@ namespace Microsoft.MixedReality.Toolkit.Utilities
         /// </remarks>
         public bool UseOnPreRender
         {
-            get => useOnPreRender;
+            get { return useOnPreRender; }
             set
             {
                 if (cameraMethods == null)
@@ -124,8 +123,7 @@ namespace Microsoft.MixedReality.Toolkit.Utilities
         {
             if (renderers != null)
             {
-                // Remove from end of list to avoid re-allocation of array
-                for (int i = renderers.Count - 1; i >= 0; i--)
+                while (renderers.Count != 0)
                 {
                     RemoveRenderer(renderers[0]);
                 }
@@ -186,7 +184,7 @@ namespace Microsoft.MixedReality.Toolkit.Utilities
 
         protected void LateUpdate()
         {
-            // Deferring the LateUpdate() call to OnCameraPreRender()
+            //Deferring the LateUpdate() call to OnCameraPreRender()
             if (!useOnPreRender)
             {
                 UpdateRenderers();
@@ -195,7 +193,6 @@ namespace Microsoft.MixedReality.Toolkit.Utilities
 
         protected void OnCameraPreRender(CameraEventRouter router)
         {
-            // Only subscribed to via UseOnPreRender property setter
             UpdateRenderers();
         }
 

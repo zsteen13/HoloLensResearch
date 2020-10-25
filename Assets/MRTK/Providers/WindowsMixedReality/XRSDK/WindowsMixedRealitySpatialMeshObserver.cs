@@ -3,7 +3,6 @@
 
 using Microsoft.MixedReality.Toolkit.SpatialAwareness;
 using Microsoft.MixedReality.Toolkit.Utilities;
-using Unity.Profiling;
 using UnityEngine;
 
 #if WMR_ENABLED
@@ -37,8 +36,6 @@ namespace Microsoft.MixedReality.Toolkit.XRSDK.WindowsMixedReality
             BaseMixedRealityProfile profile = null) : base(spatialAwarenessSystem, name, priority, profile)
         { }
 
-        private static readonly ProfilerMarker ConfigureObserverVolumePerfMarker = new ProfilerMarker("[MRTK] WindowsMixedRealitySpatialMeshObserver.ConfigureObserverVolume");
-
         /// <inheritdoc/>
         protected override void ConfigureObserverVolume()
         {
@@ -47,28 +44,25 @@ namespace Microsoft.MixedReality.Toolkit.XRSDK.WindowsMixedReality
                 return;
             }
 
-            using (ConfigureObserverVolumePerfMarker.Auto())
+            // Update the observer
+            switch (ObserverVolumeType)
             {
-                // Update the observer
-                switch (ObserverVolumeType)
-                {
-                    case VolumeType.AxisAlignedCube:
-                        XRSDKSubsystemHelpers.MeshSubsystem.SetBoundingVolume(ObserverOrigin, ObservationExtents);
-                        break;
+                case VolumeType.AxisAlignedCube:
+                    XRSDKSubsystemHelpers.MeshSubsystem.SetBoundingVolume(ObserverOrigin, ObservationExtents);
+                    break;
 #if WMR_ENABLED
-                    case VolumeType.Sphere:
-                        // We use the x value of the extents as the sphere radius
-                        XRSDKSubsystemHelpers.MeshSubsystem.SetBoundingVolumeSphere(ObserverOrigin, ObservationExtents.x);
-                        break;
+                case VolumeType.Sphere:
+                    // We use the x value of the extents as the sphere radius
+                    XRSDKSubsystemHelpers.MeshSubsystem.SetBoundingVolumeSphere(ObserverOrigin, ObservationExtents.x);
+                    break;
 
-                    case VolumeType.UserAlignedCube:
-                        XRSDKSubsystemHelpers.MeshSubsystem.SetBoundingVolumeOrientedBox(ObserverOrigin, ObservationExtents, ObserverRotation);
-                        break;
+                case VolumeType.UserAlignedCube:
+                    XRSDKSubsystemHelpers.MeshSubsystem.SetBoundingVolumeOrientedBox(ObserverOrigin, ObservationExtents, ObserverRotation);
+                    break;
 #endif // WMR_ENABLED
-                    default:
-                        Debug.LogError($"Unsupported ObserverVolumeType value {ObserverVolumeType}");
-                        break;
-                }
+                default:
+                    Debug.LogError($"Unsupported ObserverVolumeType value {ObserverVolumeType}");
+                    break;
             }
         }
     }

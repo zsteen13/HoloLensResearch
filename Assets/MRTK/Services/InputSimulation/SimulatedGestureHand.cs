@@ -8,7 +8,7 @@ namespace Microsoft.MixedReality.Toolkit.Input
 {
     [MixedRealityController(
         SupportedControllerType.GGVHand,
-        new[] { Handedness.Left, Handedness.Right, Handedness.None })]
+        new[] { Handedness.Left, Handedness.Right })]
     public class SimulatedGestureHand : SimulatedHand
     {
         /// <inheritdoc />
@@ -90,14 +90,18 @@ namespace Microsoft.MixedReality.Toolkit.Input
                 useRailsNavigation = gestureProfile.UseRailsNavigation;
             }
 
-            MixedRealityInputSimulationProfile inputSimProfile = CoreServices.GetInputSystemDataProvider<IInputSimulationService>()?.InputSimulationProfile;
+            MixedRealityInputSimulationProfile inputSimProfile = null;
+            if (CoreServices.InputSystem != null)
+            {
+                inputSimProfile = (CoreServices.InputSystem as IMixedRealityDataProviderAccess).GetDataProvider<IInputSimulationService>()?.InputSimulationProfile;
+            }
+
             if (inputSimProfile != null)
             {
                 holdStartDuration = inputSimProfile.HoldStartDuration;
                 navigationStartThreshold = inputSimProfile.NavigationStartThreshold;
             }
         }
-
 
         /// <summary>
         /// The GGV default interactions.
@@ -126,6 +130,7 @@ namespace Microsoft.MixedReality.Toolkit.Input
 
             for (int i = 0; i < Interactions?.Length; i++)
             {
+
                 switch (Interactions[i].InputType)
                 {
                     case DeviceInputType.SpatialGrip:
@@ -137,6 +142,7 @@ namespace Microsoft.MixedReality.Toolkit.Input
                         break;
                     case DeviceInputType.Select:
                         Interactions[i].BoolData = handData.IsPinching;
+
                         if (Interactions[i].Changed)
                         {
                             if (Interactions[i].BoolData)

@@ -26,7 +26,7 @@ namespace Microsoft.MixedReality.Toolkit.Editor
         private static Dictionary<TrackedHandJoint, bool> showHandJointSettings;
         private static Dictionary<TrackedHandJoint, string> showHandJointSettingKeys;
 
-        // We want hand preview to always be visible
+        //We want hand preview to always be visible
         public override bool AlwaysDrawSceneGUI { get { return true; } }
 
         public override void DrawInspectorGUI(object target)
@@ -61,7 +61,7 @@ namespace Microsoft.MixedReality.Toolkit.Editor
             }
 
             ShowHandJointFoldout = SessionState.GetBool(ShowHandJointFoldoutKey, false);
-            ShowHandJointFoldout = EditorGUILayout.Foldout(ShowHandJointFoldout, "Visible Hand Joints", true);
+            ShowHandJointFoldout = EditorGUILayout.Foldout(ShowHandJointFoldout, "Visible Hand Joints");
             SessionState.SetBool(ShowHandJointFoldoutKey, ShowHandJointFoldout);
 
             if (ShowHandJointFoldout)

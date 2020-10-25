@@ -3,14 +3,11 @@
 
 using Microsoft.MixedReality.Toolkit.Utilities;
 using System.Text;
-using Unity.Profiling;
 using UnityEngine;
+using UnityEngine.Profiling;
 
 #if WINDOWS_UWP
-using Windows.Media.Capture;
 using Windows.System;
-#else
-using UnityEngine.Profiling;
 #endif
 
 namespace Microsoft.MixedReality.Toolkit.Diagnostics
@@ -36,13 +33,11 @@ namespace Microsoft.MixedReality.Toolkit.Diagnostics
         private static readonly int frameRange = 30;
         private static readonly Vector2 defaultWindowRotation = new Vector2(10.0f, 20.0f);
         private static readonly Vector3 defaultWindowScale = new Vector3(0.2f, 0.04f, 1.0f);
-        private static readonly Vector3[] backgroundScales = { new Vector3(1.05f, 1.2f, 1.2f), new Vector3(1.0f, 0.5f, 1.0f), new Vector3(1.0f, 0.25f, 1.0f) };
+        private static readonly Vector3[] backgroundScales = { new Vector3(1.0f, 1.0f, 1.0f), new Vector3(1.0f, 0.5f, 1.0f), new Vector3(1.0f, 0.25f, 1.0f) };
         private static readonly Vector3[] backgroundOffsets = { new Vector3(0.0f, 0.0f, 0.0f), new Vector3(0.0f, 0.25f, 0.0f), new Vector3(0.0f, 0.375f, 0.0f) };
         private static readonly string usedMemoryString = "Used: ";
         private static readonly string peakMemoryString = "Peak: ";
         private static readonly string limitMemoryString = "Limit: ";
-        private static readonly string voiceCommandString = "Say \"Toggle Profiler\" to show/hide";
-        private static readonly string visualProfilerTitleString = "MRTK Visual Profiler";
 
         public Transform WindowParent { get; set; } = null;
 
@@ -55,12 +50,6 @@ namespace Microsoft.MixedReality.Toolkit.Diagnostics
             get { return isVisible; }
             set { isVisible = value; }
         }
-
-        private bool ShouldShowProfiler =>
-#if WINDOWS_UWP
-            (appCapture == null || !appCapture.IsCapturingVideo || showProfilerDuringMRC) &&
-#endif // WINDOWS_UWP
-            isVisible;
 
         [SerializeField, Tooltip("Should the frame info (colored bars) be displayed.")]
         private bool frameInfoVisible = true;
@@ -126,20 +115,6 @@ namespace Microsoft.MixedReality.Toolkit.Diagnostics
             set { windowFollowSpeed = Mathf.Abs(value); }
         }
 
-        [SerializeField]
-        [Tooltip("If the diagnostics profiler should be visible while a mixed reality capture is happening on HoloLens.")]
-        private bool showProfilerDuringMRC = false;
-
-        /// <summary>
-        /// If the diagnostics profiler should be visible while a mixed reality capture is happening on HoloLens.
-        /// </summary>
-        /// <remarks>This is not usually recommended, as MRC can have an effect on an app's frame rate.</remarks>
-        public bool ShowProfilerDuringMRC
-        {
-            get { return showProfilerDuringMRC; }
-            set { showProfilerDuringMRC = value; }
-        }
-
         [Header("UI Settings")]
         [SerializeField, Range(0, 3), Tooltip("How many decimal places to display on numeric strings.")]
         private int displayedDecimalDigits = 1;
@@ -154,7 +129,7 @@ namespace Microsoft.MixedReality.Toolkit.Diagnostics
         }
 
         [SerializeField, Tooltip("A list of colors to display for different percentage of target frame rates.")]
-        private FrameRateColor[] frameRateColors = new FrameRateColor[]
+        private FrameRateColor[] frameRateColors = new FrameRateColor[] 
         {
             // Green
             new FrameRateColor() { percentageOfTarget = 0.95f, color = new Color(127 / 256.0f, 186 / 256.0f, 0 / 256.0f, 1.0f) },
@@ -181,8 +156,6 @@ namespace Microsoft.MixedReality.Toolkit.Diagnostics
         private TextMesh usedMemoryText;
         private TextMesh peakMemoryText;
         private TextMesh limitMemoryText;
-        private TextMesh voiceCommandText;
-        private TextMesh mrtkText;
         private Transform usedAnchor;
         private Transform peakAnchor;
         private Quaternion windowHorizontalRotation;
@@ -215,10 +188,6 @@ namespace Microsoft.MixedReality.Toolkit.Diagnostics
         private Material foregroundMaterial;
         private Material textMaterial;
         private Mesh quadMesh;
-
-#if WINDOWS_UWP
-        private AppCapture appCapture;
-#endif // WINDOWS_UWP
 
         private void Reset()
         {
@@ -286,10 +255,6 @@ namespace Microsoft.MixedReality.Toolkit.Diagnostics
             Reset();
             BuildWindow();
             BuildFrameRateStrings();
-
-#if WINDOWS_UWP
-            appCapture = AppCapture.GetForCurrentView();
-#endif // WINDOWS_UWP
         }
 
         private void OnDestroy()
@@ -300,8 +265,6 @@ namespace Microsoft.MixedReality.Toolkit.Diagnostics
             }
         }
 
-        private static readonly ProfilerMarker LateUpdatePerfMarker = new ProfilerMarker("[MRTK] MixedRealityToolkitVisualProfiler.LateUpdate");
-
         private void LateUpdate()
         {
             if (window == null)
@@ -309,243 +272,220 @@ namespace Microsoft.MixedReality.Toolkit.Diagnostics
                 return;
             }
 
-            using (LateUpdatePerfMarker.Auto())
+            // Update window transformation.
+            Transform cameraTransform = CameraCache.Main ? CameraCache.Main.transform : null;
+
+            if (isVisible && cameraTransform != null)
             {
-                // Update window transformation.
-                Transform cameraTransform = CameraCache.Main ? CameraCache.Main.transform : null;
-
-                if (ShouldShowProfiler && cameraTransform != null)
-                {
-                    float t = Time.deltaTime * windowFollowSpeed;
-                    window.position = Vector3.Lerp(window.position, CalculateWindowPosition(cameraTransform), t);
-                    window.rotation = Quaternion.Slerp(window.rotation, CalculateWindowRotation(cameraTransform), t);
-                    window.localScale = defaultWindowScale * windowScale;
-                    CalculateBackgroundSize();
-                }
-
-                // Capture frame timings every frame and read from it depending on the frameSampleRate.
-                FrameTimingManager.CaptureFrameTimings();
-
-                ++frameCount;
-                float elapsedSeconds = stopwatch.ElapsedMilliseconds * 0.001f;
-
-                if (elapsedSeconds >= frameSampleRate)
-                {
-                    int cpuFrameRate = (int)(1.0f / (elapsedSeconds / frameCount));
-                    int gpuFrameRate = 0;
-
-                    // Many platforms do not yet support the FrameTimingManager. When timing data is returned from the FrameTimingManager we will use
-                    // its timing data, else we will depend on the stopwatch.
-                    uint frameTimingsCount = FrameTimingManager.GetLatestTimings((uint)Mathf.Min(frameCount, maxFrameTimings), frameTimings);
-
-                    if (frameTimingsCount != 0)
-                    {
-                        float cpuFrameTime, gpuFrameTime;
-                        AverageFrameTiming(frameTimings, frameTimingsCount, out cpuFrameTime, out gpuFrameTime);
-                        cpuFrameRate = (int)(1.0f / (cpuFrameTime / frameCount));
-                        gpuFrameRate = (int)(1.0f / (gpuFrameTime / frameCount));
-                    }
-
-                    // Update frame rate text.
-                    cpuFrameRateText.text = cpuFrameRateStrings[Mathf.Clamp(cpuFrameRate, 0, maxTargetFrameRate)];
-
-                    if (gpuFrameRate != 0)
-                    {
-                        gpuFrameRateText.gameObject.SetActive(true);
-                        gpuFrameRateText.text = gpuFrameRateStrings[Mathf.Clamp(gpuFrameRate, 0, maxTargetFrameRate)];
-                    }
-
-                    // Update frame colors.
-                    if (frameInfoVisible)
-                    {
-                        for (int i = frameRange - 1; i > 0; --i)
-                        {
-                            frameInfoColors[i] = frameInfoColors[i - 1];
-                        }
-
-                        frameInfoColors[0] = CalculateFrameColor(cpuFrameRate);
-                        frameInfoPropertyBlock.SetVectorArray(colorID, frameInfoColors);
-                    }
-
-                    // Reset timers.
-                    frameCount = 0;
-                    stopwatch.Reset();
-                    stopwatch.Start();
-                }
-
-                // Draw frame info.
-                if (ShouldShowProfiler && frameInfoVisible)
-                {
-                    Matrix4x4 parentLocalToWorldMatrix = window.localToWorldMatrix;
-
-                    if (defaultInstancedMaterial != null)
-                    {
-                        frameInfoPropertyBlock.SetMatrix(parentMatrixID, parentLocalToWorldMatrix);
-                        Graphics.DrawMeshInstanced(quadMesh, 0, defaultInstancedMaterial, frameInfoMatrices, frameInfoMatrices.Length, frameInfoPropertyBlock, UnityEngine.Rendering.ShadowCastingMode.Off, false);
-                    }
-                    else
-                    {
-                        // If a instanced material is not available, fall back to non-instanced rendering.
-                        for (int i = 0; i < frameInfoMatrices.Length; ++i)
-                        {
-                            frameInfoPropertyBlock.SetColor(colorID, frameInfoColors[i]);
-                            Graphics.DrawMesh(quadMesh, parentLocalToWorldMatrix * frameInfoMatrices[i], defaultMaterial, 0, null, 0, frameInfoPropertyBlock, false, false, false);
-                        }
-                    }
-                }
-
-                // Update memory statistics.
-                if (ShouldShowProfiler && memoryStatsVisible)
-                {
-                    ulong limit = AppMemoryUsageLimit;
-
-                    if (limit != limitMemoryUsage)
-                    {
-                        if (WillDisplayedMemoryUsageDiffer(limitMemoryUsage, limit, displayedDecimalDigits))
-                        {
-                            MemoryUsageToString(stringBuffer, displayedDecimalDigits, limitMemoryText, limitMemoryString, limit);
-                        }
-
-                        limitMemoryUsage = limit;
-                    }
-
-                    ulong usage = AppMemoryUsage;
-
-                    if (usage != memoryUsage)
-                    {
-                        usedAnchor.localScale = new Vector3((float)usage / limitMemoryUsage, usedAnchor.localScale.y, usedAnchor.localScale.z);
-
-                        if (WillDisplayedMemoryUsageDiffer(memoryUsage, usage, displayedDecimalDigits))
-                        {
-                            MemoryUsageToString(stringBuffer, displayedDecimalDigits, usedMemoryText, usedMemoryString, usage);
-                        }
-
-                        memoryUsage = usage;
-                    }
-
-                    if (memoryUsage > peakMemoryUsage)
-                    {
-                        peakAnchor.localScale = new Vector3((float)memoryUsage / limitMemoryUsage, peakAnchor.localScale.y, peakAnchor.localScale.z);
-
-                        if (WillDisplayedMemoryUsageDiffer(peakMemoryUsage, memoryUsage, displayedDecimalDigits))
-                        {
-                            MemoryUsageToString(stringBuffer, displayedDecimalDigits, peakMemoryText, peakMemoryString, memoryUsage);
-                        }
-
-                        peakMemoryUsage = memoryUsage;
-                    }
-                }
-
-                // Update visibility state.
-                window.gameObject.SetActive(ShouldShowProfiler);
-                memoryStats.gameObject.SetActive(memoryStatsVisible);
+                float t = Time.deltaTime * windowFollowSpeed;
+                window.position = Vector3.Lerp(window.position, CalculateWindowPosition(cameraTransform), t);
+                window.rotation = Quaternion.Slerp(window.rotation, CalculateWindowRotation(cameraTransform), t);
+                window.localScale = defaultWindowScale * windowScale;
+                CalculateBackgroundSize();
             }
-        }
 
-        private static readonly ProfilerMarker CalculateWindowPositionPerfMarker = new ProfilerMarker("[MRTK] MixedRealityToolkitVisualProfiler.CalculateWindowPosition");
+            // Capture frame timings every frame and read from it depending on the frameSampleRate.
+            FrameTimingManager.CaptureFrameTimings();
 
-        private Vector3 CalculateWindowPosition(Transform cameraTransform)
-        {
-            using (CalculateWindowPositionPerfMarker.Auto())
+            ++frameCount;
+            float elapsedSeconds = stopwatch.ElapsedMilliseconds * 0.001f;
+
+            if (elapsedSeconds >= frameSampleRate)
             {
-                float windowDistance = Mathf.Max(16.0f / CameraCache.Main.fieldOfView, CameraCache.Main.nearClipPlane + 0.25f);
-                Vector3 position = cameraTransform.position + (cameraTransform.forward * windowDistance);
-                Vector3 horizontalOffset = cameraTransform.right * windowOffset.x;
-                Vector3 verticalOffset = cameraTransform.up * windowOffset.y;
+                int cpuFrameRate = (int)(1.0f / (elapsedSeconds / frameCount));
+                int gpuFrameRate = 0;
 
-                switch (windowAnchor)
+                // Many platforms do not yet support the FrameTimingManager. When timing data is returned from the FrameTimingManager we will use
+                // its timing data, else we will depend on the stopwatch.
+                uint frameTimingsCount = FrameTimingManager.GetLatestTimings((uint)Mathf.Min(frameCount, maxFrameTimings), frameTimings);
+
+                if (frameTimingsCount != 0)
                 {
-                    case TextAnchor.UpperLeft: position += verticalOffset - horizontalOffset; break;
-                    case TextAnchor.UpperCenter: position += verticalOffset; break;
-                    case TextAnchor.UpperRight: position += verticalOffset + horizontalOffset; break;
-                    case TextAnchor.MiddleLeft: position -= horizontalOffset; break;
-                    case TextAnchor.MiddleRight: position += horizontalOffset; break;
-                    case TextAnchor.LowerLeft: position -= verticalOffset + horizontalOffset; break;
-                    case TextAnchor.LowerCenter: position -= verticalOffset; break;
-                    case TextAnchor.LowerRight: position -= verticalOffset - horizontalOffset; break;
+                    float cpuFrameTime, gpuFrameTime;
+                    AverageFrameTiming(frameTimings, frameTimingsCount, out cpuFrameTime, out gpuFrameTime);
+                    cpuFrameRate = (int)(1.0f / (cpuFrameTime / frameCount));
+                    gpuFrameRate = (int)(1.0f / (gpuFrameTime / frameCount));
                 }
 
-                return position;
-            }
-        }
+                // Update frame rate text.
+                cpuFrameRateText.text = cpuFrameRateStrings[Mathf.Clamp(cpuFrameRate, 0, maxTargetFrameRate)];
 
-        private static readonly ProfilerMarker CalculateWindowRotationPerfMarker = new ProfilerMarker("[MRTK] MixedRealityToolkitVisualProfiler.CalculateWindowRotation");
-
-        private Quaternion CalculateWindowRotation(Transform cameraTransform)
-        {
-            using (CalculateWindowRotationPerfMarker.Auto())
-            {
-                Quaternion rotation = cameraTransform.rotation;
-
-                switch (windowAnchor)
+                if (gpuFrameRate != 0)
                 {
-                    case TextAnchor.UpperLeft: rotation *= windowHorizontalRotationInverse * windowVerticalRotationInverse; break;
-                    case TextAnchor.UpperCenter: rotation *= windowHorizontalRotationInverse; break;
-                    case TextAnchor.UpperRight: rotation *= windowHorizontalRotationInverse * windowVerticalRotation; break;
-                    case TextAnchor.MiddleLeft: rotation *= windowVerticalRotationInverse; break;
-                    case TextAnchor.MiddleRight: rotation *= windowVerticalRotation; break;
-                    case TextAnchor.LowerLeft: rotation *= windowHorizontalRotation * windowVerticalRotationInverse; break;
-                    case TextAnchor.LowerCenter: rotation *= windowHorizontalRotation; break;
-                    case TextAnchor.LowerRight: rotation *= windowHorizontalRotation * windowVerticalRotation; break;
+                    gpuFrameRateText.gameObject.SetActive(true);
+                    gpuFrameRateText.text = gpuFrameRateStrings[Mathf.Clamp(gpuFrameRate, 0, maxTargetFrameRate)];
                 }
 
-                return rotation;
-            }
-        }
-
-        private static readonly ProfilerMarker CalculateFrameColorPerfMarker = new ProfilerMarker("[MRTK] MixedRealityToolkitVisualProfiler.CalculateFrameColor");
-
-        private Color CalculateFrameColor(int frameRate)
-        {
-            using (CalculateFrameColorPerfMarker.Auto())
-            {
-                // Ideally we would query a device specific API (like the HolographicFramePresentationReport) to detect missed frames.
-                // But, many of these APIs are inaccessible in Unity. Currently missed frames are assumed when the average cpuFrameRate 
-                // is under the target frame rate.
-
-                int colorCount = frameRateColors.Length;
-
-                if (colorCount == 0)
+                // Update frame colors.
+                if (frameInfoVisible)
                 {
-                    return baseColor;
-                }
-
-                float percentageOfTarget = frameRate / AppTargetFrameRate;
-                int lastColor = colorCount - 1;
-
-                for (int i = 0; i < lastColor; ++i)
-                {
-                    if (percentageOfTarget >= frameRateColors[i].percentageOfTarget)
+                    for (int i = frameRange - 1; i > 0; --i)
                     {
-                        return frameRateColors[i].color;
+                        frameInfoColors[i] = frameInfoColors[i - 1];
                     }
+
+                    frameInfoColors[0] = CalculateFrameColor(cpuFrameRate);
+                    frameInfoPropertyBlock.SetVectorArray(colorID, frameInfoColors);
                 }
 
-                return frameRateColors[lastColor].color;
+                // Reset timers.
+                frameCount = 0;
+                stopwatch.Reset();
+                stopwatch.Start();
             }
-        }
 
-        private static readonly ProfilerMarker CalculateBackgroundSizePerfMarker = new ProfilerMarker("[MRTK] MixedRealityToolkitVisualProfiler.CalculateBackgroundSize");
-
-        private void CalculateBackgroundSize()
-        {
-            using (CalculateBackgroundSizePerfMarker.Auto())
+            // Draw frame info.
+            if (isVisible && frameInfoVisible)
             {
-                if (memoryStatsVisible)
+                Matrix4x4 parentLocalToWorldMatrix = window.localToWorldMatrix;
+
+                if (defaultInstancedMaterial != null)
                 {
-                    background.localPosition = backgroundOffsets[0];
-                    background.localScale = backgroundScales[0];
-                }
-                else if (frameInfoVisible)
-                {
-                    background.localPosition = backgroundOffsets[1];
-                    background.localScale = backgroundScales[1];
+                    frameInfoPropertyBlock.SetMatrix(parentMatrixID, parentLocalToWorldMatrix);
+                    Graphics.DrawMeshInstanced(quadMesh, 0, defaultInstancedMaterial, frameInfoMatrices, frameInfoMatrices.Length, frameInfoPropertyBlock, UnityEngine.Rendering.ShadowCastingMode.Off, false);
                 }
                 else
                 {
-                    background.localPosition = backgroundOffsets[2];
-                    background.localScale = backgroundScales[2];
+                    // If a instanced material is not available, fall back to non-instanced rendering.
+                    for (int i  = 0; i < frameInfoMatrices.Length; ++i)
+                    {
+                        frameInfoPropertyBlock.SetColor(colorID, frameInfoColors[i]);
+                        Graphics.DrawMesh(quadMesh, parentLocalToWorldMatrix * frameInfoMatrices[i], defaultMaterial, 0, null, 0, frameInfoPropertyBlock, false, false, false);
+                    }
                 }
+            }
+
+            // Update memory statistics.
+            if (isVisible && memoryStatsVisible)
+            {
+                ulong limit = AppMemoryUsageLimit;
+
+                if (limit != limitMemoryUsage)
+                {
+                    if (WillDisplayedMemoryUsageDiffer(limitMemoryUsage, limit, displayedDecimalDigits))
+                    {
+                        MemoryUsageToString(stringBuffer, displayedDecimalDigits, limitMemoryText, limitMemoryString, limit);
+                    }
+
+                    limitMemoryUsage = limit;
+                }
+
+                ulong usage = AppMemoryUsage;
+
+                if (usage != memoryUsage)
+                {
+                    usedAnchor.localScale = new Vector3((float)usage / limitMemoryUsage, usedAnchor.localScale.y, usedAnchor.localScale.z);
+
+                    if (WillDisplayedMemoryUsageDiffer(memoryUsage, usage, displayedDecimalDigits))
+                    {
+                        MemoryUsageToString(stringBuffer, displayedDecimalDigits, usedMemoryText, usedMemoryString, usage);
+                    }
+
+                    memoryUsage = usage;
+                }
+
+                if (memoryUsage > peakMemoryUsage)
+                {
+                    peakAnchor.localScale = new Vector3((float)memoryUsage / limitMemoryUsage, peakAnchor.localScale.y, peakAnchor.localScale.z);
+
+                    if (WillDisplayedMemoryUsageDiffer(peakMemoryUsage, memoryUsage, displayedDecimalDigits))
+                    {
+                        MemoryUsageToString(stringBuffer, displayedDecimalDigits, peakMemoryText, peakMemoryString, memoryUsage);
+                    }
+
+                    peakMemoryUsage = memoryUsage;
+                }
+            }
+
+            // Update visibility state.
+            window.gameObject.SetActive(isVisible);
+            memoryStats.gameObject.SetActive(memoryStatsVisible);
+        }
+
+        private Vector3 CalculateWindowPosition(Transform cameraTransform)
+        {
+            float windowDistance = Mathf.Max(16.0f / CameraCache.Main.fieldOfView, CameraCache.Main.nearClipPlane + 0.25f);
+            Vector3 position = cameraTransform.position + (cameraTransform.forward * windowDistance);
+            Vector3 horizontalOffset = cameraTransform.right * windowOffset.x;
+            Vector3 verticalOffset = cameraTransform.up * windowOffset.y;
+
+            switch (windowAnchor)
+            {
+                case TextAnchor.UpperLeft: position += verticalOffset - horizontalOffset; break;
+                case TextAnchor.UpperCenter: position += verticalOffset; break;
+                case TextAnchor.UpperRight: position += verticalOffset + horizontalOffset; break;
+                case TextAnchor.MiddleLeft: position -= horizontalOffset; break;
+                case TextAnchor.MiddleRight: position += horizontalOffset; break;
+                case TextAnchor.LowerLeft: position -= verticalOffset + horizontalOffset; break;
+                case TextAnchor.LowerCenter: position -= verticalOffset; break;
+                case TextAnchor.LowerRight: position -= verticalOffset - horizontalOffset; break;
+            }
+
+            return position;
+        }
+
+        private Quaternion CalculateWindowRotation(Transform cameraTransform)
+        {
+            Quaternion rotation = cameraTransform.rotation;
+
+            switch (windowAnchor)
+            {
+                case TextAnchor.UpperLeft: rotation *= windowHorizontalRotationInverse * windowVerticalRotationInverse; break;
+                case TextAnchor.UpperCenter: rotation *= windowHorizontalRotationInverse; break;
+                case TextAnchor.UpperRight: rotation *= windowHorizontalRotationInverse * windowVerticalRotation; break;
+                case TextAnchor.MiddleLeft: rotation *= windowVerticalRotationInverse; break;
+                case TextAnchor.MiddleRight: rotation *= windowVerticalRotation; break;
+                case TextAnchor.LowerLeft: rotation *= windowHorizontalRotation * windowVerticalRotationInverse; break;
+                case TextAnchor.LowerCenter: rotation *= windowHorizontalRotation; break;
+                case TextAnchor.LowerRight: rotation *= windowHorizontalRotation * windowVerticalRotation; break;
+            }
+
+            return rotation;
+        }
+
+        private Color CalculateFrameColor(int frameRate)
+        {
+            // Ideally we would query a device specific API (like the HolographicFramePresentationReport) to detect missed frames.
+            // But, many of these APIs are inaccessible in Unity. Currently missed frames are assumed when the average cpuFrameRate 
+            // is under the target frame rate.
+
+            int colorCount = frameRateColors.Length;
+
+            if (colorCount == 0)
+            {
+                return baseColor;
+            }
+
+            float percentageOfTarget = frameRate / AppTargetFrameRate;
+            int lastColor = colorCount - 1;
+
+            for (int i = 0; i < lastColor; ++i)
+            {
+                if (percentageOfTarget >= frameRateColors[i].percentageOfTarget)
+                {
+                    return frameRateColors[i].color;
+                }
+            }
+
+            return frameRateColors[lastColor].color;
+        }
+
+        private void CalculateBackgroundSize()
+        {
+            if (frameInfoVisible && memoryStatsVisible || memoryStatsVisible)
+            {
+                background.localPosition = backgroundOffsets[0];
+                background.localScale = backgroundScales[0];
+            }
+            else if (frameInfoVisible)
+            {
+                background.localPosition = backgroundOffsets[1];
+                background.localScale = backgroundScales[1];
+            }
+            else
+            {
+                background.localPosition = backgroundOffsets[2];
+                background.localScale = backgroundScales[2];
             }
         }
 
@@ -604,10 +544,6 @@ namespace Microsoft.MixedReality.Toolkit.Diagnostics
                 usedMemoryText = CreateText("UsedMemoryText", new Vector3(-0.495f, 0.0f, 0.0f), memoryStats, TextAnchor.UpperLeft, textMaterial, memoryUsedColor, usedMemoryString);
                 peakMemoryText = CreateText("PeakMemoryText", new Vector3(0.0f, 0.0f, 0.0f), memoryStats, TextAnchor.UpperCenter, textMaterial, memoryPeakColor, peakMemoryString);
                 limitMemoryText = CreateText("LimitMemoryText", new Vector3(0.495f, 0.0f, 0.0f), memoryStats, TextAnchor.UpperRight, textMaterial, Color.white, limitMemoryString);
-                voiceCommandText = CreateText("VoiceCommandText", new Vector3(-0.525f, -0.7f, 0.0f), memoryStats, TextAnchor.UpperLeft, textMaterial, Color.white, voiceCommandString);
-                mrtkText = CreateText("MRTKText", new Vector3(0.52f, -0.7f, 0.0f), memoryStats, TextAnchor.UpperRight, textMaterial, Color.white, visualProfilerTitleString);
-                voiceCommandText.fontSize = 32;
-                mrtkText.fontSize = 32;
 
                 GameObject limitBar = CreateQuad("LimitBar", memoryStats);
                 InitializeRenderer(limitBar, defaultMaterial, colorID, memoryLimitColor);
@@ -632,7 +568,7 @@ namespace Microsoft.MixedReality.Toolkit.Diagnostics
                 }
             }
 
-            window.gameObject.SetActive(ShouldShowProfiler);
+            window.gameObject.SetActive(isVisible);
             memoryStats.gameObject.SetActive(memoryStatsVisible);
         }
 
@@ -725,68 +661,58 @@ namespace Microsoft.MixedReality.Toolkit.Diagnostics
             renderer.allowOcclusionWhenDynamic = false;
         }
 
-        private static readonly ProfilerMarker MemoryUsageToStringPerfMarker = new ProfilerMarker("[MRTK] MixedRealityToolkitVisualProfiler.MemoryUsageToString");
-
         private static void MemoryUsageToString(char[] stringBuffer, int displayedDecimalDigits, TextMesh textMesh, string prefixString, ulong memoryUsage)
         {
-            using (MemoryUsageToStringPerfMarker.Auto())
+            // Using a custom number to string method to avoid the overhead, and allocations, of built in string.Format/StringBuilder methods.
+            // We can also make some assumptions since the domain of the input number (memoryUsage) is known.
+            float memoryUsageMB = ConvertBytesToMegabytes(memoryUsage);
+            int memoryUsageIntegerDigits = (int)memoryUsageMB;
+            int memoryUsageFractionalDigits = (int)((memoryUsageMB - memoryUsageIntegerDigits) * Mathf.Pow(10.0f, displayedDecimalDigits));
+            int bufferIndex = 0;
+
+            for (int i = 0; i < prefixString.Length; ++i)
             {
-                // Using a custom number to string method to avoid the overhead, and allocations, of built in string.Format/StringBuilder methods.
-                // We can also make some assumptions since the domain of the input number (memoryUsage) is known.
-                float memoryUsageMB = ConvertBytesToMegabytes(memoryUsage);
-                int memoryUsageIntegerDigits = (int)memoryUsageMB;
-                int memoryUsageFractionalDigits = (int)((memoryUsageMB - memoryUsageIntegerDigits) * Mathf.Pow(10.0f, displayedDecimalDigits));
-                int bufferIndex = 0;
-
-                for (int i = 0; i < prefixString.Length; ++i)
-                {
-                    stringBuffer[bufferIndex++] = prefixString[i];
-                }
-
-                bufferIndex = MemoryItoA(memoryUsageIntegerDigits, stringBuffer, bufferIndex);
-                stringBuffer[bufferIndex++] = '.';
-
-                if (memoryUsageFractionalDigits != 0)
-                {
-                    bufferIndex = MemoryItoA(memoryUsageFractionalDigits, stringBuffer, bufferIndex);
-                }
-                else
-                {
-                    for (int i = 0; i < displayedDecimalDigits; ++i)
-                    {
-                        stringBuffer[bufferIndex++] = '0';
-                    }
-                }
-
-                stringBuffer[bufferIndex++] = 'M';
-                stringBuffer[bufferIndex++] = 'B';
-                textMesh.text = new string(stringBuffer, 0, bufferIndex);
+                stringBuffer[bufferIndex++] = prefixString[i];
             }
-        }
 
-        private static readonly ProfilerMarker MemoryItoAPerfMarker = new ProfilerMarker("[MRTK] MixedRealityToolkitVisualProfiler.MemoryItoA");
+            bufferIndex = MemoryItoA(memoryUsageIntegerDigits, stringBuffer, bufferIndex);
+            stringBuffer[bufferIndex++] = '.';
+
+            if (memoryUsageFractionalDigits != 0)
+            {
+                bufferIndex = MemoryItoA(memoryUsageFractionalDigits, stringBuffer, bufferIndex);
+            }
+            else
+            {
+                for (int i = 0; i < displayedDecimalDigits; ++i)
+                {
+                    stringBuffer[bufferIndex++] = '0';
+                }
+            }
+
+            stringBuffer[bufferIndex++] = 'M';
+            stringBuffer[bufferIndex++] = 'B';
+            textMesh.text = new string(stringBuffer, 0, bufferIndex);
+        }
 
         private static int MemoryItoA(int value, char[] stringBuffer, int bufferIndex)
         {
-            using (MemoryItoAPerfMarker.Auto())
+            int startIndex = bufferIndex;
+
+            for (; value != 0; value /= 10)
             {
-                int startIndex = bufferIndex;
-
-                for (; value != 0; value /= 10)
-                {
-                    stringBuffer[bufferIndex++] = (char)((char)(value % 10) + '0');
-                }
-
-                char temp;
-                for (int endIndex = bufferIndex - 1; startIndex < endIndex; ++startIndex, --endIndex)
-                {
-                    temp = stringBuffer[startIndex];
-                    stringBuffer[startIndex] = stringBuffer[endIndex];
-                    stringBuffer[endIndex] = temp;
-                }
-
-                return bufferIndex;
+                stringBuffer[bufferIndex++] = (char)((char)(value % 10) + '0');
             }
+
+            char temp;
+            for (int endIndex = bufferIndex - 1; startIndex < endIndex; ++startIndex, --endIndex)
+            {
+                temp = stringBuffer[startIndex];
+                stringBuffer[startIndex] = stringBuffer[endIndex];
+                stringBuffer[endIndex] = temp;
+            }
+
+            return bufferIndex;
         }
 
         private static float AppTargetFrameRate
@@ -799,27 +725,22 @@ namespace Microsoft.MixedReality.Toolkit.Diagnostics
             }
         }
 
-        private static readonly ProfilerMarker AverageFrameTimingPerfMarker = new ProfilerMarker("[MRTK] MixedRealityToolkitVisualProfiler.AverageFrameTiming");
-
         private static void AverageFrameTiming(FrameTiming[] frameTimings, uint frameTimingsCount, out float cpuFrameTime, out float gpuFrameTime)
         {
-            using (AverageFrameTimingPerfMarker.Auto())
+            double cpuTime = 0.0f;
+            double gpuTime = 0.0f;
+
+            for (int i = 0; i < frameTimingsCount; ++i)
             {
-                double cpuTime = 0.0f;
-                double gpuTime = 0.0f;
-
-                for (int i = 0; i < frameTimingsCount; ++i)
-                {
-                    cpuTime += frameTimings[i].cpuFrameTime;
-                    gpuTime += frameTimings[i].gpuFrameTime;
-                }
-
-                cpuTime /= frameTimingsCount;
-                gpuTime /= frameTimingsCount;
-
-                cpuFrameTime = (float)(cpuTime * 0.001);
-                gpuFrameTime = (float)(gpuTime * 0.001);
+                cpuTime += frameTimings[i].cpuFrameTime;
+                gpuTime += frameTimings[i].gpuFrameTime;
             }
+
+            cpuTime /= frameTimingsCount;
+            gpuTime /= frameTimingsCount;
+
+            cpuFrameTime = (float)(cpuTime * 0.001);
+            gpuFrameTime = (float)(gpuTime * 0.001);
         }
 
         private static ulong AppMemoryUsage
@@ -846,18 +767,13 @@ namespace Microsoft.MixedReality.Toolkit.Diagnostics
             }
         }
 
-        private static readonly ProfilerMarker WillDisplayedMemoryUsageDifferPerfMarker = new ProfilerMarker("[MRTK] MixedRealityToolkitVisualProfiler.WillDisplayedMemoryUsageDiffer");
-
         private static bool WillDisplayedMemoryUsageDiffer(ulong oldUsage, ulong newUsage, int displayedDecimalDigits)
         {
-            using (WillDisplayedMemoryUsageDifferPerfMarker.Auto())
-            {
-                float oldUsageMBs = ConvertBytesToMegabytes(oldUsage);
-                float newUsageMBs = ConvertBytesToMegabytes(newUsage);
-                float decimalPower = Mathf.Pow(10.0f, displayedDecimalDigits);
+            float oldUsageMBs = ConvertBytesToMegabytes(oldUsage);
+            float newUsageMBs = ConvertBytesToMegabytes(newUsage);
+            float decimalPower = Mathf.Pow(10.0f, displayedDecimalDigits);
 
-                return (int)(oldUsageMBs * decimalPower) != (int)(newUsageMBs * decimalPower);
-            }
+            return (int)(oldUsageMBs * decimalPower) != (int)(newUsageMBs * decimalPower);
         }
 
         private static ulong ConvertMegabytesToBytes(int megabytes)

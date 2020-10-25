@@ -14,40 +14,26 @@ namespace Microsoft.MixedReality.Toolkit.Input
         void OnHandMeshUpdated(InputEventData<HandMeshInfo> eventData);
     }
 
-    /// <summary>
-    /// Stores pointers and transform information for Hand Mesh data provided by current platform. This is the data container for the IMixedRealityHandMeshHandler input system event interface.
-    /// </summary>
+    // See BaseHandVisualizer.OnHandMeshUpdated for an example of how to use the
+    // hand mesh info to render a mesh.
     public class HandMeshInfo
     {
-        /// <summary>
-        /// Pointer to vertices buffer of the hand mesh in the local coordinate system (i.e relative to center of hand)
-        /// </summary>
+        // The vertices of the hand mesh in the initial coordinate system
         public Vector3[] vertices;
 
-        /// <summary>
-        /// Pointer to the triangle indices buffer of the hand mesh. 
-        /// </summary>
+        // Mesh triangle indices
         public int[] triangles;
 
-        /// <summary>
-        /// Pointer to the normals buffer of the hand mesh in the local coordinate system
-        /// </summary>
+        // Hand mesh normals, in initial coordinate system
         public Vector3[] normals;
 
-        /// <summary>
-        /// Pointer to UV mapping of the hand mesh triangles
-        /// </summary>
+        // UV mapping of the hand. TODO: Give more specific details about UVs.
         public Vector2[] uvs;
 
-        /// <summary>
-        /// Translation to apply to mesh to go from local coordinates to world coordinates
-        /// </summary>
+        // Translation to apply to mesh to go from initial coordinates to world coordinates
         public Vector3 position;
 
-        /// <summary>
-        /// Rotation to apply to mesh to go from local coordinates to world coordinates
-        /// </summary>
+        // Rotation to apply to mesh to go from initial coordinates to world coordinates
         public Quaternion rotation;
     }
 }
- 

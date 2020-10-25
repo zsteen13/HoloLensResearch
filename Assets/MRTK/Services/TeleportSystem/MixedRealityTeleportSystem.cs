@@ -3,14 +3,13 @@
 
 using Microsoft.MixedReality.Toolkit.Input;
 using Microsoft.MixedReality.Toolkit.Utilities;
-using Unity.Profiling;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
 namespace Microsoft.MixedReality.Toolkit.Teleport
 {
     /// <summary>
-    /// The Mixed Reality Toolkit's implementation of the <see cref="Microsoft.MixedReality.Toolkit.Teleport.IMixedRealityTeleportSystem"/>.
+    /// The Mixed Reality Toolkit's specific implementation of the <see cref="Microsoft.MixedReality.Toolkit.Teleport.IMixedRealityTeleportSystem"/>
     /// </summary>
     public class MixedRealityTeleportSystem : BaseCoreSystem, IMixedRealityTeleportSystem
     {
@@ -28,7 +27,10 @@ namespace Microsoft.MixedReality.Toolkit.Teleport
         /// <summary>
         /// Constructor.
         /// </summary>
-        public MixedRealityTeleportSystem() : base(null) { } // Teleport system does not use a profile
+        public MixedRealityTeleportSystem() : base(null) // Teleport system does not use a profile
+        {
+            IsInputSystemEnabled = CoreServices.InputSystem != null;
+        }
 
         private TeleportEventData teleportEventData;
 
@@ -39,7 +41,7 @@ namespace Microsoft.MixedReality.Toolkit.Teleport
         private Vector3 targetRotation = Vector3.zero;
 
         /// <summary>
-        /// Used to clean up event system when shutting down, if this system created one.
+        /// only used to clean up event system when shutting down if this system created one.
         /// </summary>
         private GameObject eventSystemReference = null;
 
@@ -71,7 +73,7 @@ namespace Microsoft.MixedReality.Toolkit.Teleport
                     }
                     else
                     {
-                        Debug.Log("The input system didn't properly add an event system to your scene. Please make sure the input system's priority is set higher than the teleport system.");
+                        Debug.Log("The Input System didn't properly add an event system to your scene. Please make sure the Input System's priority is set higher than the teleport system.");
                     }
                 }
                 else if (eventSystems.Length > 1)
@@ -91,7 +93,7 @@ namespace Microsoft.MixedReality.Toolkit.Teleport
 
             if (eventSystemReference != null)
             {
-                if (!Application.isPlaying)
+                if (Application.isEditor)
                 {
                     Object.DestroyImmediate(eventSystemReference);
                 }
@@ -106,41 +108,41 @@ namespace Microsoft.MixedReality.Toolkit.Teleport
 
         #region IEventSystemManager Implementation
 
-        private static readonly ProfilerMarker HandleEventPerfMarker = new ProfilerMarker("[MRTK] MixedRealityTeleportSystem.HandleEvent");
-
         /// <inheritdoc />
         public override void HandleEvent<T>(BaseEventData eventData, ExecuteEvents.EventFunction<T> eventHandler)
         {
-            using (HandleEventPerfMarker.Auto())
-            {
-                Debug.Assert(eventData != null);
-                var teleportData = ExecuteEvents.ValidateEventData<TeleportEventData>(eventData);
-                Debug.Assert(teleportData != null);
-                Debug.Assert(!teleportData.used);
+            Debug.Assert(eventData != null);
+            var teleportData = ExecuteEvents.ValidateEventData<TeleportEventData>(eventData);
+            Debug.Assert(teleportData != null);
+            Debug.Assert(!teleportData.used);
 
-                // Process all the event listeners
-                base.HandleEvent(teleportData, eventHandler);
-            }
+            // Process all the event listeners
+            base.HandleEvent(teleportData, eventHandler);
         }
 
         /// <summary>
-        /// Register a <see href="https://docs.unity3d.com/ScriptReference/GameObject.html">GameObject</see> to listen to teleport events.
+        /// Register a <see href="https://docs.unity3d.com/ScriptReference/GameObject.html">GameObject</see> from listening to Teleport events.
         /// </summary>
-        public override void Register(GameObject listener) => base.Register(listener);
+        public override void Register(GameObject listener)
+        {
+            base.Register(listener);
+        }
 
         /// <summary>
-        /// Unregister a <see href="https://docs.unity3d.com/ScriptReference/GameObject.html">GameObject</see> from listening to teleport events.
+        /// Unregister a <see href="https://docs.unity3d.com/ScriptReference/GameObject.html">GameObject</see> from listening to Teleport events.
         /// </summary>
-        public override void Unregister(GameObject listener) => base.Unregister(listener);
+        public override void Unregister(GameObject listener)
+        {
+            base.Unregister(listener);
+        }
 
         #endregion IEventSystemManager Implementation
 
         #region IMixedRealityTeleportSystem Implementation
-
         /// <summary>
-        /// Is an input system registered?
+        /// Is there an input system registered.
         /// </summary>
-        private bool IsInputSystemEnabled => CoreServices.InputSystem != null;
+        private bool IsInputSystemEnabled = false;
 
         private float teleportDuration = 0.25f;
 
@@ -167,19 +169,14 @@ namespace Microsoft.MixedReality.Toolkit.Teleport
                 handler.OnTeleportRequest(casted);
             };
 
-        private static readonly ProfilerMarker RaiseTeleportRequestPerfMarker = new ProfilerMarker("[MRTK] MixedRealityTeleportSystem.RaiseTeleportRequest");
-
         /// <inheritdoc />
         public void RaiseTeleportRequest(IMixedRealityPointer pointer, IMixedRealityTeleportHotSpot hotSpot)
         {
-            using (RaiseTeleportRequestPerfMarker.Auto())
-            {
-                // initialize event
-                teleportEventData.Initialize(pointer, hotSpot);
+            // initialize event
+            teleportEventData.Initialize(pointer, hotSpot);
 
-                // Pass handler
-                HandleEvent(teleportEventData, OnTeleportRequestHandler);
-            }
+            // Pass handler
+            HandleEvent(teleportEventData, OnTeleportRequestHandler);
         }
 
         private static readonly ExecuteEvents.EventFunction<IMixedRealityTeleportHandler> OnTeleportStartedHandler =
@@ -188,8 +185,6 @@ namespace Microsoft.MixedReality.Toolkit.Teleport
                 var casted = ExecuteEvents.ValidateEventData<TeleportEventData>(eventData);
                 handler.OnTeleportStarted(casted);
             };
-
-        private static readonly ProfilerMarker RaiseTeleportStartedPerfMarker = new ProfilerMarker("[MRTK] MixedRealityTeleportSystem.RaiseTeleportStarted");
 
         /// <inheritdoc />
         public void RaiseTeleportStarted(IMixedRealityPointer pointer, IMixedRealityTeleportHotSpot hotSpot)
@@ -200,18 +195,15 @@ namespace Microsoft.MixedReality.Toolkit.Teleport
                 return;
             }
 
-            using (RaiseTeleportStartedPerfMarker.Auto())
-            {
-                isTeleporting = true;
+            isTeleporting = true;
 
-                // initialize event
-                teleportEventData.Initialize(pointer, hotSpot);
+            // initialize event
+            teleportEventData.Initialize(pointer, hotSpot);
 
-                // Pass handler
-                HandleEvent(teleportEventData, OnTeleportStartedHandler);
+            // Pass handler
+            HandleEvent(teleportEventData, OnTeleportStartedHandler);
 
-                ProcessTeleportationRequest(teleportEventData);
-            }
+            ProcessTeleportationRequest(teleportEventData);
         }
 
         private static readonly ExecuteEvents.EventFunction<IMixedRealityTeleportHandler> OnTeleportCompletedHandler =
@@ -220,8 +212,6 @@ namespace Microsoft.MixedReality.Toolkit.Teleport
                 var casted = ExecuteEvents.ValidateEventData<TeleportEventData>(eventData);
                 handler.OnTeleportCompleted(casted);
             };
-
-        private static readonly ProfilerMarker RaiseTeleportCompletePerfMarker = new ProfilerMarker("[MRTK] MixedRealityTeleportSystem.RaiseTeleportComplete");
 
         /// <summary>
         /// Raise a teleportation completed event.
@@ -236,16 +226,13 @@ namespace Microsoft.MixedReality.Toolkit.Teleport
                 return;
             }
 
-            using (RaiseTeleportCompletePerfMarker.Auto())
-            {
-                // initialize event
-                teleportEventData.Initialize(pointer, hotSpot);
+            // initialize event
+            teleportEventData.Initialize(pointer, hotSpot);
 
-                // Pass handler
-                HandleEvent(teleportEventData, OnTeleportCompletedHandler);
+            // Pass handler
+            HandleEvent(teleportEventData, OnTeleportCompletedHandler);
 
-                isTeleporting = false;
-            }
+            isTeleporting = false;
         }
 
         private static readonly ExecuteEvents.EventFunction<IMixedRealityTeleportHandler> OnTeleportCanceledHandler =
@@ -255,64 +242,54 @@ namespace Microsoft.MixedReality.Toolkit.Teleport
                 handler.OnTeleportCanceled(casted);
             };
 
-        private static readonly ProfilerMarker RaiseTeleportCanceledPerfMarker = new ProfilerMarker("[MRTK] MixedRealityTeleportSystem.RaiseTeleportHandled");
-
         /// <inheritdoc />
         public void RaiseTeleportCanceled(IMixedRealityPointer pointer, IMixedRealityTeleportHotSpot hotSpot)
         {
-            using (RaiseTeleportCanceledPerfMarker.Auto())
-            {
-                // initialize event
-                teleportEventData.Initialize(pointer, hotSpot);
+            // initialize event
+            teleportEventData.Initialize(pointer, hotSpot);
 
-                // Pass handler
-                HandleEvent(teleportEventData, OnTeleportCanceledHandler);
-            }
+            // Pass handler
+            HandleEvent(teleportEventData, OnTeleportCanceledHandler);
         }
 
         #endregion IMixedRealityTeleportSystem Implementation
 
-        private static readonly ProfilerMarker ProcessTeleportationRequestPerfMarker = new ProfilerMarker("[MRTK] MixedRealityTeleportSystem.ProcessTeleportationRequest");
-
         private void ProcessTeleportationRequest(TeleportEventData eventData)
         {
-            using (ProcessTeleportationRequestPerfMarker.Auto())
+            isProcessingTeleportRequest = true;
+
+            targetRotation = Vector3.zero;
+            var teleportPointer = eventData.Pointer as IMixedRealityTeleportPointer;
+            if (teleportPointer != null)
             {
-                isProcessingTeleportRequest = true;
-
-                targetRotation = Vector3.zero;
-                var teleportPointer = eventData.Pointer as IMixedRealityTeleportPointer;
-                if (teleportPointer != null)
-                {
-                    targetRotation.y = teleportPointer.PointerOrientation;
-                }
-                targetPosition = eventData.Pointer.Result.Details.Point;
-
-                if (eventData.HotSpot != null)
-                {
-                    targetPosition = eventData.HotSpot.Position;
-
-                    if (eventData.HotSpot.OverrideTargetOrientation)
-                    {
-                        targetRotation.y = eventData.HotSpot.TargetOrientation;
-                    }
-                }
-
-                float height = targetPosition.y;
-                targetPosition -= CameraCache.Main.transform.position - MixedRealityPlayspace.Position;
-                targetPosition.y = height;
-
-                MixedRealityPlayspace.Position = targetPosition;
-                MixedRealityPlayspace.RotateAround(
-                            CameraCache.Main.transform.position,
-                            Vector3.up,
-                            targetRotation.y - CameraCache.Main.transform.eulerAngles.y);
-
-                isProcessingTeleportRequest = false;
-
-                // Raise complete event using the pointer and hot spot provided.
-                RaiseTeleportComplete(eventData.Pointer, eventData.HotSpot);
+                targetRotation.y = teleportPointer.PointerOrientation;
             }
+            targetPosition = eventData.Pointer.Result.Details.Point;
+
+            if (eventData.HotSpot != null)
+            {
+                targetPosition = eventData.HotSpot.Position;
+
+                if (eventData.HotSpot.OverrideTargetOrientation)
+                {
+                    targetRotation.y = eventData.HotSpot.TargetOrientation;
+                }
+            }
+
+            float height = targetPosition.y;
+            targetPosition -= CameraCache.Main.transform.position - MixedRealityPlayspace.Position;
+            targetPosition.y = height;
+
+            MixedRealityPlayspace.Position = targetPosition;
+            MixedRealityPlayspace.RotateAround(
+                        CameraCache.Main.transform.position, 
+                        Vector3.up, 
+                        targetRotation.y - CameraCache.Main.transform.eulerAngles.y);
+
+            isProcessingTeleportRequest = false;
+
+            // Raise complete event using the pointer and hot spot provided.
+            RaiseTeleportComplete(eventData.Pointer, eventData.HotSpot);
         }
     }
 }

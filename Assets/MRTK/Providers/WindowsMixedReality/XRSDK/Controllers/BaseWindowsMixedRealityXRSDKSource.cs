@@ -4,7 +4,6 @@
 using Microsoft.MixedReality.Toolkit.Input;
 using Microsoft.MixedReality.Toolkit.Utilities;
 using Microsoft.MixedReality.Toolkit.XRSDK.Input;
-using Unity.Profiling;
 using UnityEngine;
 using UnityEngine.XR;
 
@@ -30,45 +29,40 @@ namespace Microsoft.MixedReality.Toolkit.XRSDK.WindowsMixedReality
         private Quaternion currentPointerRotation = Quaternion.identity;
         private MixedRealityPose currentPointerPose = MixedRealityPose.ZeroIdentity;
 
-        private static readonly ProfilerMarker UpdatePoseDataPerfMarker = new ProfilerMarker("[MRTK] BaseWindowsMixedRealityXRSDKSource.UpdatePoseData");
-
         /// <summary>
         /// Update spatial pointer and spatial grip data.
         /// </summary>
         protected override void UpdatePoseData(MixedRealityInteractionMapping interactionMapping, InputDevice inputDevice)
         {
-            using (UpdatePoseDataPerfMarker.Auto())
+            Debug.Assert(interactionMapping.AxisType == AxisType.SixDof);
+
+            base.UpdatePoseData(interactionMapping, inputDevice);
+
+            // Update the interaction data source
+            switch (interactionMapping.InputType)
             {
-                Debug.Assert(interactionMapping.AxisType == AxisType.SixDof);
+                case DeviceInputType.SpatialPointer:
+                    if (inputDevice.TryGetFeatureValue(WindowsMRUsages.PointerPosition, out currentPointerPosition))
+                    {
+                        currentPointerPose.Position = MixedRealityPlayspace.TransformPoint(currentPointerPosition);
+                    }
 
-                base.UpdatePoseData(interactionMapping, inputDevice);
+                    if (inputDevice.TryGetFeatureValue(WindowsMRUsages.PointerRotation, out currentPointerRotation))
+                    {
+                        currentPointerPose.Rotation = MixedRealityPlayspace.Rotation * currentPointerRotation;
+                    }
 
-                // Update the interaction data source
-                switch (interactionMapping.InputType)
-                {
-                    case DeviceInputType.SpatialPointer:
-                        if (inputDevice.TryGetFeatureValue(WindowsMRUsages.PointerPosition, out currentPointerPosition))
-                        {
-                            currentPointerPose.Position = MixedRealityPlayspace.TransformPoint(currentPointerPosition);
-                        }
+                    interactionMapping.PoseData = currentPointerPose;
 
-                        if (inputDevice.TryGetFeatureValue(WindowsMRUsages.PointerRotation, out currentPointerRotation))
-                        {
-                            currentPointerPose.Rotation = MixedRealityPlayspace.Rotation * currentPointerRotation;
-                        }
-
-                        interactionMapping.PoseData = currentPointerPose;
-
-                        // If our value changed raise it.
-                        if (interactionMapping.Changed)
-                        {
-                            // Raise input system event if it's enabled
-                            CoreServices.InputSystem?.RaisePoseInputChanged(InputSource, ControllerHandedness, interactionMapping.MixedRealityInputAction, interactionMapping.PoseData);
-                        }
-                        break;
-                    default:
-                        return;
-                }
+                    // If our value changed raise it.
+                    if (interactionMapping.Changed)
+                    {
+                        // Raise input system event if it's enabled
+                        CoreServices.InputSystem?.RaisePoseInputChanged(InputSource, ControllerHandedness, interactionMapping.MixedRealityInputAction, interactionMapping.PoseData);
+                    }
+                    break;
+                default:
+                    return;
             }
         }
 #endif // WMR_ENABLED

@@ -58,9 +58,8 @@ namespace Microsoft.MixedReality.Toolkit.Input
             {
                 if (inputSimService == null)
                 {
-                    inputSimService = CoreServices.GetInputSystemDataProvider<IInputSimulationService>();
+                    inputSimService = (CoreServices.InputSystem as IMixedRealityDataProviderAccess).GetDataProvider<IInputSimulationService>();
                 }
-
                 return inputSimService;
             }
         }

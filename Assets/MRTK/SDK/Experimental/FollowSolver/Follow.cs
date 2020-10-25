@@ -14,7 +14,20 @@ namespace Microsoft.MixedReality.Toolkit.Experimental.Utilities
     /// </summary> 
     [AddComponentMenu("Scripts/MRTK/Experimental/Solver/Follow")]
     public class Follow : Solver
-    {        
+    {
+        [SerializeField]
+        [Tooltip("Position lerp multiplier")]
+        private float moveToDefaultDistanceLerpTime = 0.1f;
+
+        /// <summary>
+        /// Position lerp multiplier.
+        /// </summary>
+        public float MoveToDefaultDistanceLerpTime
+        {
+            get => moveToDefaultDistanceLerpTime;
+            set => moveToDefaultDistanceLerpTime = value;
+        }
+        
         [SerializeField]
         [Tooltip("The desired orientation of this object")]
         private SolverOrientationType orientationType = SolverOrientationType.FaceTrackedObject;
@@ -41,7 +54,6 @@ namespace Microsoft.MixedReality.Toolkit.Experimental.Utilities
             set => faceTrackedObjectWhileClamped = value;
         }
 
-        [Experimental]
         [SerializeField]
         [Tooltip("Face a user defined transform rather than using the solver orientation type.")]
         private bool faceUserDefinedTargetTransform = false;
@@ -238,44 +250,17 @@ namespace Microsoft.MixedReality.Toolkit.Experimental.Utilities
             set => verticalMaxDistance = value;
         }
 
-        /// <summary>
-        /// Specifies the method used to ensure the refForward vector remains within the bounds set by the leashing parameters.
-        /// </summary>
-        public enum AngularClampType
-        {
-            /// <summary>
-            /// Locks the rotation with a viewing cone.
-            /// </summary>
-            ViewDegrees = 0,
-            /// <summary>
-            /// Locks the rotation to a specified number of steps around the tracked object.
-            /// </summary>
-            AngleStepping = 1,
-            /// <summary>
-            /// Uses the gameObject's renderer bounds to keep within the view frustum.
-            /// </summary>
-            RendererBounds = 2,
-            /// <summary>
-            /// Uses the gameObject's collider bounds to keep within the view frustum.
-            /// </summary>
-            ColliderBounds = 3,
-        }
-
         [SerializeField]
-        [Tooltip("Specifies the method used to ensure the refForward vector remains within the bounds set by the leashing parameters.")]
-        private AngularClampType angularClampMode = AngularClampType.ViewDegrees;
+        [Tooltip("Lock the rotation to a specified number of steps around the tracked object.")]
+        private bool useAngleStepping = false;
 
         /// <summary>
-        /// Accessors for specifying the method used to ensure the refForward vector remains within the bounds set by the leashing parameters.
+        /// Lock the rotation to a specified number of steps around the tracked object.
         /// </summary>
-        public AngularClampType AngularClampMode
+        public bool UseAngleStepping
         {
-            get => angularClampMode;
-            set
-            {
-                angularClampMode = value;
-                RecalculateBoundsExtents();
-            }
+            get => useAngleStepping;
+            set => useAngleStepping = value;
         }
 
         [Range(2, 24)]
@@ -292,39 +277,9 @@ namespace Microsoft.MixedReality.Toolkit.Experimental.Utilities
             set => tetherAngleSteps = Mathf.Clamp(value, 2, 24);
         }
 
-        [SerializeField]
-        [Tooltip("Scales the bounds to impose a larger or smaller bounds than the calculated bounds.")]
-        private float boundsScaler = 1.0f;
-
-        /// <summary>
-        /// Scales the bounds to impose a larger or smaller bounds than the calculated bounds.
-        /// </summary>
-        public float BoundsScaler
-        {
-            get => boundsScaler;
-            set
-            {
-                boundsScaler = value;
-                RecalculateBoundsExtents();
-            }
-        }
-
-        /// <summary>
-        /// Re-centers the target in the next update.
-        /// </summary>
         public void Recenter()
         {
             recenterNextUpdate = true;
-        }
-
-        /// <summary>
-        /// Recalculates the bounds based on the angular clamp mode.
-        /// </summary>
-        public void RecalculateBoundsExtents()
-        {
-            Bounds bounds;
-            GetBounds(gameObject, angularClampMode, out bounds);
-            boundsExtents = bounds.extents * boundsScaler;
         }
 
         private Vector3 ReferencePosition => SolverHandler.TransformTarget != null ? SolverHandler.TransformTarget.position : Vector3.zero;
@@ -333,13 +288,11 @@ namespace Microsoft.MixedReality.Toolkit.Experimental.Utilities
         private Quaternion PreviousReferenceRotation = Quaternion.identity;
         private Quaternion PreviousGoalRotation = Quaternion.identity;
         private bool recenterNextUpdate = true;
-        private Vector3 boundsExtents = Vector3.one;
 
         protected override void OnEnable()
         {
             base.OnEnable();
             Recenter();
-            RecalculateBoundsExtents();
         }
 
         /// <inheritdoc />
@@ -370,21 +323,15 @@ namespace Microsoft.MixedReality.Toolkit.Experimental.Utilities
             Vector3 goalPosition = currentPosition;
             if (!ignoreDistanceClamp)
             {
-                wasClamped |= DistanceClamp(currentPosition, refPosition, goalDirection, ref goalPosition);
+                wasClamped |= DistanceClamp(currentPosition, refPosition, goalDirection, wasClamped, ref goalPosition);
             }
 
             // Figure out goal rotation of the element based on orientation setting
             Quaternion goalRotation = Quaternion.identity;
             ComputeOrientation(goalPosition, wasClamped, ref goalRotation);
 
-            // Avoid drift by not updating the goal position when not clamped
-            if (wasClamped)
-            {
-                GoalPosition = goalPosition;
-            }
-
+            GoalPosition = goalPosition;
             GoalRotation = goalRotation;
-
             PreviousGoalRotation = goalRotation;
 
             PreviousReferencePosition = refPosition;
@@ -462,6 +409,7 @@ namespace Microsoft.MixedReality.Toolkit.Experimental.Utilities
 
             Vector3 currentRefForward = refRotation * Vector3.forward;
             Vector3 refRight = refRotation * Vector3.right;
+            Vector3 refUp = refRotation * Vector3.up;
 
             bool angularClamped = false;
 
@@ -474,27 +422,8 @@ namespace Microsoft.MixedReality.Toolkit.Experimental.Utilities
             }
             else
             {
-                float angle = -AngleBetweenOnPlane(toTarget, currentRefForward, refRight);
-                float minMaxAngle;
-
-                switch (angularClampMode)
-                {
-                    default:
-                    case AngularClampType.ViewDegrees:
-                    case AngularClampType.AngleStepping:
-                        {
-                            minMaxAngle = MaxViewVerticalDegrees * 0.5f;
-                        }
-                        break;
-
-                    case AngularClampType.RendererBounds:
-                    case AngularClampType.ColliderBounds:
-                        {
-                            Vector3 top = refRotation * new Vector3(0.0f, boundsExtents.y, currentDistance);
-                            minMaxAngle = AngleBetweenOnPlane(top, currentRefForward, refRight) * 2.0f;
-                        }
-                        break;
-                }
+                float angle = -AngleBetweenVectorAndPlane(toTarget, refUp);
+                float minMaxAngle = MaxViewVerticalDegrees * 0.5f;
 
                 if (angle < -minMaxAngle)
                 {
@@ -509,48 +438,31 @@ namespace Microsoft.MixedReality.Toolkit.Experimental.Utilities
             }
 
             // Y-axis leashing
-            switch (angularClampMode)
+            if (UseAngleStepping)
             {
-                case AngularClampType.AngleStepping:
-                    {
-                        float stepAngle = 360f / tetherAngleSteps;
-                        int numberOfSteps = Mathf.RoundToInt(SolverHandler.TransformTarget.transform.eulerAngles.y / stepAngle);
+                float stepAngle = 360f / tetherAngleSteps;
+                int numberOfSteps = Mathf.RoundToInt(SolverHandler.TransformTarget.transform.eulerAngles.y / stepAngle);
 
-                        float newAngle = stepAngle * numberOfSteps;
+                float newAngle = stepAngle * numberOfSteps;
 
-                        rotation = Quaternion.Euler(rotation.eulerAngles.x, newAngle, rotation.eulerAngles.z);
-                    }
-                    break;
+                rotation = Quaternion.Euler(rotation.eulerAngles.x, newAngle, rotation.eulerAngles.z);
+            }
+            else
+            {
+                // This is negated because Unity is left-handed
+                float angle = AngleBetweenVectorAndPlane(toTarget, refRight);
+                float minMaxAngle = MaxViewHorizontalDegrees * 0.5f;
 
-                case AngularClampType.ViewDegrees:
-                case AngularClampType.RendererBounds:
-                case AngularClampType.ColliderBounds:
-                    {
-                        float angle = AngleBetweenVectorAndPlane(toTarget, refRight);
-                        float minMaxAngle;
-
-                        if (angularClampMode == AngularClampType.ViewDegrees)
-                        {
-                            minMaxAngle = MaxViewHorizontalDegrees * 0.5f;
-                        }
-                        else
-                        {
-                            Vector3 side = refRotation * new Vector3(boundsExtents.x, 0.0f, boundsExtents.z);
-                            minMaxAngle = AngleBetweenVectorAndPlane(side, refRight) * 2.0f;
-                        }
-
-                        if (angle < -minMaxAngle)
-                        {
-                            rotation = Quaternion.AngleAxis(-minMaxAngle - angle, Vector3.up) * rotation;
-                            angularClamped = true;
-                        }
-                        else if (angle > minMaxAngle)
-                        {
-                            rotation = Quaternion.AngleAxis(minMaxAngle - angle, Vector3.up) * rotation;
-                            angularClamped = true;
-                        }
-                    }
-                    break;
+                if (angle < -minMaxAngle)
+                {
+                    rotation = Quaternion.AngleAxis(-minMaxAngle - angle, Vector3.up) * rotation;
+                    angularClamped = true;
+                }
+                else if (angle > minMaxAngle)
+                {
+                    rotation = Quaternion.AngleAxis(minMaxAngle - angle, Vector3.up) * rotation;
+                    angularClamped = true;
+                }
             }
 
             refForward = rotation * Vector3.forward;
@@ -564,7 +476,7 @@ namespace Microsoft.MixedReality.Toolkit.Experimental.Utilities
         /// IgnoreReferencePitchAndRoll is true and we have a PitchOffset, we only apply these calculations
         /// for xz.
         /// </summary>
-        private bool DistanceClamp(Vector3 currentPosition, Vector3 refPosition, Vector3 refForward, ref Vector3 clampedPosition)
+        private bool DistanceClamp(Vector3 currentPosition, Vector3 refPosition, Vector3 refForward, bool interpolateToDefaultDistance, ref Vector3 clampedPosition)
         {
             float clampedDistance;
             float currentDistance = Vector3.Distance(currentPosition, refPosition);
@@ -593,6 +505,16 @@ namespace Microsoft.MixedReality.Toolkit.Experimental.Utilities
 
                 desiredDistanceXZ = Mathf.Clamp(desiredDistanceXZ, minDistanceXZ, maxDistanceXZ);
 
+                if (interpolateToDefaultDistance)
+                {
+                    Vector3 defaultDistanceXZVector = direction * DefaultDistance;
+                    defaultDistanceXZVector.y = 0;
+                    float defaulltDistanceXZ = defaultDistanceXZVector.magnitude;
+                
+                    float interpolationRate = Mathf.Min(moveToDefaultDistanceLerpTime * 60.0f * SolverHandler.DeltaTime, 1.0f);
+                    desiredDistanceXZ = desiredDistanceXZ + (interpolationRate * (defaulltDistanceXZ - desiredDistanceXZ));
+                }
+
                 Vector3 desiredPosition = refPosition + directionXZ * desiredDistanceXZ;
                 float desiredHeight = refPosition.y + refForward.y * MaxDistance;
                 desiredPosition.y = desiredHeight;
@@ -605,7 +527,15 @@ namespace Microsoft.MixedReality.Toolkit.Experimental.Utilities
             }
             else
             {
-                clampedDistance = Mathf.Clamp(currentDistance, MinDistance, MaxDistance);
+                clampedDistance = currentDistance;
+
+                if (interpolateToDefaultDistance)
+                {
+                    float interpolationRate = Mathf.Min(moveToDefaultDistanceLerpTime * 60.0f * SolverHandler.DeltaTime, 1.0f);
+                    clampedDistance = clampedDistance + (interpolationRate * (DefaultDistance - clampedDistance));
+                }
+
+                clampedDistance = Mathf.Clamp(clampedDistance, MinDistance, MaxDistance);
             }
 
             clampedPosition = refPosition + direction * clampedDistance;
@@ -717,25 +647,6 @@ namespace Microsoft.MixedReality.Toolkit.Experimental.Utilities
             float sqrMagnitude = (x - y).sqrMagnitude;
 
             return sqrMagnitude > eps;
-        }
-
-        private static bool GetBounds(GameObject target, AngularClampType angularClampType, out Bounds bounds)
-        {
-            switch (angularClampType)
-            {
-                case AngularClampType.RendererBounds:
-                    {
-                        return BoundsExtensions.GetRenderBounds(target, out bounds, 0);
-                    }
-
-                case AngularClampType.ColliderBounds:
-                    {
-                        return BoundsExtensions.GetColliderBounds(target, out bounds, 0);
-                    }
-            }
-
-            bounds = new Bounds();
-            return false;
         }
     }
 }

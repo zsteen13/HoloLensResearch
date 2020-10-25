@@ -18,33 +18,26 @@ namespace Microsoft.MixedReality.Toolkit.Input
     {
         private enum GazePointerState
         {
-            /// <summary>
-            /// When the application starts up, the gaze pointer should be active.
-            /// </summary>
+            // When the application starts up, the gaze pointer should be active
             Initial,
 
-            /// <summary>
-            /// If head gaze is in use, then the gaze pointer is active when no hands are visible, after "select".
-            /// If eye gaze is use, then the gaze pointer is active when no far pointers are active.
-            /// </summary>
+            // If head gaze is in use, then the gaze pointer is active when no hands are visible, after "select"
+            // If eye gaze is use, then the gaze pointer is active when no far pointers are active.
             GazePointerActive,
 
-            /// <summary>
-            /// If head gaze is in use, then the gaze pointer is inactive as soon as motion controller or
-            /// articulated hand pointers appear.
-            /// If eye gaze is in use, then the gaze pointer is inactive when far pointers are active.
-            /// </summary>
+            // If head gaze is in use, then the gaze pointer is inactive as soon as motion controller or
+            // articulated hand pointers appear.
+            // If eye gaze is in use, then the gaze pointer is inactive when far pointers are active.
             GazePointerInactive
         }
-
         private GazePointerState gazePointerState = GazePointerState.Initial;
         private bool activateGazeKeywordIsSet = false;
         private bool eyeGazeValid = false;
 
-        /// <summary>
-        /// Whether the state machine is currently in a state where the gaze pointer should be active.
-        /// </summary>
-        public bool IsGazePointerActive => gazePointerState != GazePointerState.GazePointerInactive;
+        public bool IsGazePointerActive
+        {
+            get { return gazePointerState != GazePointerState.GazePointerInactive; }
+        }
 
         /// <summary>
         /// Updates the state machine based on the number of near pointers, the number of far pointers,
@@ -58,6 +51,28 @@ namespace Microsoft.MixedReality.Toolkit.Input
                 eyeGazeValid = isEyeGazeValid;
             }
 
+            if (isEyeGazeValid)
+            {
+                UpdateStateEyeGaze(numNearPointersActive, numFarPointersActive);
+            }
+            else
+            {
+                UpdateStateHeadGaze(numNearPointersActive, numFarPointersActive, numFarPointersWithoutCursorActive);
+            }
+        }
+
+        private void UpdateStateEyeGaze(int numNearPointersActive, int numFarPointersActive)
+        {
+            // Only enable eye gaze as a pointer if there are no other near or far pointers active.
+            bool isEyeGazePointerActive = numFarPointersActive == 0 && numNearPointersActive == 0;
+
+            gazePointerState = isEyeGazePointerActive ?
+                GazePointerState.GazePointerActive :
+                GazePointerState.GazePointerInactive;
+        }
+
+        private void UpdateStateHeadGaze(int numNearPointersActive, int numFarPointersActive, int numFarPointersWithoutCursorActive)
+        {
             bool canGazeCursorShow = numFarPointersActive == 0 && numNearPointersActive == 0;
             switch (gazePointerState)
             {
@@ -95,15 +110,13 @@ namespace Microsoft.MixedReality.Toolkit.Input
             }
         }
 
-        /// <summary>
-        /// Flags user intention to re activate eye or head based gaze cursor
-        /// </summary>
         public void OnSpeechKeywordRecognized(SpeechEventData eventData)
         {
-            if (eventData.Command.Keyword.Equals("select", StringComparison.CurrentCultureIgnoreCase))
+            if (!eyeGazeValid && eventData.Command.Keyword.Equals("select", StringComparison.CurrentCultureIgnoreCase))
             {
                 activateGazeKeywordIsSet = true;
             }
         }
     }
+
 }

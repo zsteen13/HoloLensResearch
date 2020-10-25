@@ -57,8 +57,15 @@ namespace Microsoft.MixedReality.Toolkit.Input
         /// </remarks>
         public bool EnableHandMeshVisualization
         {
-            get => IsSupportedApplicationMode(handMeshVisualizationModes);
-            set => handMeshVisualizationModes = UpdateSupportedApplicationMode(value, handMeshVisualizationModes);
+            get
+            {
+                return IsSupportedApplicationMode(handMeshVisualizationModes);
+            }
+
+            set
+            {
+                handMeshVisualizationModes = UpdateSupportedApplicationMode(value, handMeshVisualizationModes);
+            }
         }
 
         /// <summary>
@@ -72,8 +79,15 @@ namespace Microsoft.MixedReality.Toolkit.Input
         /// </remarks>
         public bool EnableHandJointVisualization
         {
-            get => IsSupportedApplicationMode(handJointVisualizationModes);
-            set => handJointVisualizationModes = UpdateSupportedApplicationMode(value, handJointVisualizationModes);
+            get
+            {
+                return IsSupportedApplicationMode(handJointVisualizationModes);
+            }
+
+            set
+            {
+                handJointVisualizationModes = UpdateSupportedApplicationMode(value, handJointVisualizationModes);
+            }
         }
 
         [EnumFlags]
@@ -83,8 +97,14 @@ namespace Microsoft.MixedReality.Toolkit.Input
         private SupportedApplicationModes handMeshVisualizationModes = 0;
         public SupportedApplicationModes HandMeshVisualizationModes
         {
-            get => handMeshVisualizationModes;
-            set => handMeshVisualizationModes = value;
+            get
+            {
+                return handMeshVisualizationModes;
+            }
+            set
+            {
+                handMeshVisualizationModes = value;
+            }
         }
 
         [EnumFlags]
@@ -94,8 +114,14 @@ namespace Microsoft.MixedReality.Toolkit.Input
         private SupportedApplicationModes handJointVisualizationModes = 0;
         public SupportedApplicationModes HandJointVisualizationModes
         {
-            get => handJointVisualizationModes;
-            set => handJointVisualizationModes = value;
+            get
+            {
+                return handJointVisualizationModes;
+            }
+            set
+            {
+                handJointVisualizationModes = value;
+            }
         }
 
         /// <summary>

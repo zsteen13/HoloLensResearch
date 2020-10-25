@@ -31,19 +31,6 @@ namespace Microsoft.MixedReality.Toolkit.XRSDK
         /// <inheritdoc/>
         public override string Name { get; protected set; } = "XR SDK Boundary System";
 
-        /// <inheritdoc/>
-        public override void Initialize()
-        {
-            if (!Application.isPlaying) { return; }
-
-            List<InputDevice> devices = new List<InputDevice>();
-            InputDevices.GetDevicesWithCharacteristics(InputDeviceCharacteristics.HeadMounted, devices);
-
-            if (devices.Count <= 0) { return; }
-
-            base.Initialize();
-        }
-
         #endregion IMixedRealityService Implementation
 
         /// <inheritdoc/>
@@ -94,7 +81,9 @@ namespace Microsoft.MixedReality.Toolkit.XRSDK
                     break;
             }
 
-            if (!XRSDKSubsystemHelpers.InputSubsystem.TrySetTrackingOriginMode(trackingOriginMode))
+            bool trackingSpaceSet = XRSDKSubsystemHelpers.InputSubsystem.TrySetTrackingOriginMode(trackingOriginMode);
+
+            if (!trackingSpaceSet)
             {
                 Debug.LogWarning("Tracking origin unable to be set.");
             }

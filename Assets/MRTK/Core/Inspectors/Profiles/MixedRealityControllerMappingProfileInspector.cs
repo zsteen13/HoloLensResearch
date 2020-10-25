@@ -92,7 +92,7 @@ namespace Microsoft.MixedReality.Toolkit.Input.Editor
 
             controllerRenderList.Clear();
 
-            showControllerDefinitions = EditorGUILayout.Foldout(showControllerDefinitions, "Controller Definitions", true);
+            showControllerDefinitions = EditorGUILayout.Foldout(showControllerDefinitions, "Controller Definitions");
             if (showControllerDefinitions)
             {
                 using (var outerVerticalScope = new GUILayout.VerticalScope())
@@ -288,6 +288,12 @@ namespace Microsoft.MixedReality.Toolkit.Input.Editor
                         }
                         else
                         {
+                            if (supportedControllerType == SupportedControllerType.GGVHand &&
+                                handedness == Handedness.None)
+                            {
+                                controllerTitle = "HoloLens Voice and Clicker";
+                            }
+
                             if (handedness != Handedness.Right)
                             {
                                 if (horizontalScope != null) { horizontalScope.Dispose(); horizontalScope = null; }

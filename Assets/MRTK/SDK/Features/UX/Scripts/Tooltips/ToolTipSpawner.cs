@@ -268,7 +268,7 @@ namespace Microsoft.MixedReality.Toolkit.UI
                     }
                 }
 
-                // Check whether we're suppose to disappear
+                //check whether we're suppose to disappear
                 switch (vanishType)
                 {
                     case VanishType.VanishOnFocusExit:

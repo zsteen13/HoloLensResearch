@@ -12,22 +12,8 @@ namespace Microsoft.MixedReality.Toolkit.UI
     /// </summary>
     public class InteractableRotationTheme : InteractableThemeBase
     {
-        /// <summary>
-        /// If true, the theme rotation value will be added to the initial Gameobject's rotation. Otherwise, it will set directly as absolute euler angles.
-        /// </summary>
-        public bool IsRelativeRotation => GetThemeProperty(RelativeRotationPropertyIndex).Value.Bool;
-
-        /// <summary>
-        /// If true, the theme manipulate the target's local rotation. Otherwise, the theme will control the world space rotation.
-        /// </summary>
-        public bool IsLocalRotation => GetThemeProperty(LocalRotationPropertyIndex).Value.Bool;
-
-        protected Vector3 originalLocalRotation;
         protected Vector3 originalRotation;
         protected Transform hostTransform;
-
-        private const int RelativeRotationPropertyIndex = 0;
-        private const int LocalRotationPropertyIndex = 1;
 
         public InteractableRotationTheme()
         {
@@ -56,16 +42,9 @@ namespace Microsoft.MixedReality.Toolkit.UI
                     new ThemeProperty()
                     {
                         Name = "Relative Rotation",
-                        Tooltip = "Should the theme rotation value be added to the initial Gameobject's rotation, or set directly as absolute euler angles",
+                        Tooltip = "Should the rotation be added to initial Gameobject rotation, or absolute",
                         Type = ThemePropertyTypes.Bool,
                         Value = new ThemePropertyValue() { Bool = false }
-                    },
-                    new ThemeProperty()
-                    {
-                        Name = "Local Rotation",
-                        Tooltip = "Should the theme manipulate the target's local rotation or world space rotation",
-                        Type = ThemePropertyTypes.Bool,
-                        Value = new ThemePropertyValue() { Bool = true }
                     },
                 },
             };
@@ -74,28 +53,17 @@ namespace Microsoft.MixedReality.Toolkit.UI
         /// <inheritdoc />
         public override void Init(GameObject host, ThemeDefinition settings)
         {
-            hostTransform = host.transform;
-            originalLocalRotation = hostTransform.localEulerAngles;
-            originalRotation = hostTransform.eulerAngles;
-
             base.Init(host, settings);
-        }
 
-        /// <inheritdoc />
-        public override void Reset()
-        {
-            if (hostTransform != null)
-            {
-                hostTransform.localEulerAngles = originalLocalRotation;
-                hostTransform.eulerAngles = originalRotation;
-            }
+            hostTransform = Host.transform;
+            originalRotation = hostTransform.localEulerAngles;
         }
 
         /// <inheritdoc />
         public override ThemePropertyValue GetProperty(ThemeStateProperty property)
         {
             ThemePropertyValue start = new ThemePropertyValue();
-            start.Vector3 = IsLocalRotation ? hostTransform.localEulerAngles : hostTransform.eulerAngles;
+            start.Vector3 = hostTransform.eulerAngles;
             return start;
         }
 
@@ -104,30 +72,13 @@ namespace Microsoft.MixedReality.Toolkit.UI
         {
             Vector3 lerpTarget = property.Values[index].Vector3;
 
-            if (IsRelativeRotation)
+            bool relative = Properties[0].Value.Bool;
+            if (relative)
             {
-                lerpTarget = (IsLocalRotation ? originalLocalRotation : originalRotation) + lerpTarget;
+                lerpTarget = originalRotation + lerpTarget;
             }
 
-            SetRotation(Quaternion.Euler(Vector3.Lerp(property.StartValue.Vector3, lerpTarget, percentage)));
-        }
-
-        /// <inheritdoc />
-        protected override void SetValue(ThemeStateProperty property, ThemePropertyValue value)
-        {
-            SetRotation(value.Quaternion);
-        }
-
-        private void SetRotation(Quaternion rot)
-        {
-            if (IsLocalRotation)
-            {
-                hostTransform.localRotation = rot;
-            }
-            else
-            {
-                hostTransform.rotation = rot;
-            }
+            hostTransform.localRotation = Quaternion.Euler(Vector3.Lerp(property.StartValue.Vector3, lerpTarget, percentage));
         }
     }
 }

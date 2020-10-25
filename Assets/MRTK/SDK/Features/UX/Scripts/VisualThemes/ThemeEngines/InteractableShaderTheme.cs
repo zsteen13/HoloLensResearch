@@ -20,10 +20,12 @@ namespace Microsoft.MixedReality.Toolkit.UI
 
         private static ThemePropertyValue emptyValue = new ThemePropertyValue();
 
-        protected MaterialPropertyBlock propertyBlock = new MaterialPropertyBlock();
+        protected MaterialPropertyBlock propertyBlock;
         protected List<ThemeStateProperty> shaderProperties;
         protected Renderer renderer;
         private Graphic graphic;
+
+        private ThemePropertyValue startValue = new ThemePropertyValue();
 
         protected const string DefaultShaderProperty = "_Color";
 
@@ -58,9 +60,6 @@ namespace Microsoft.MixedReality.Toolkit.UI
         /// <inheritdoc />
         public override void Init(GameObject host, ThemeDefinition definition)
         {
-            renderer = host.GetComponent<Renderer>();
-            graphic = host.GetComponent<Graphic>();
-
             base.Init(host, definition);
 
             shaderProperties = new List<ThemeStateProperty>();
@@ -71,7 +70,8 @@ namespace Microsoft.MixedReality.Toolkit.UI
                     shaderProperties.Add(prop);
                 }
             }
-
+            renderer = Host.GetComponent<Renderer>();
+            graphic = Host.GetComponent<Graphic>();
             if (renderer != null)
             {
                 propertyBlock = InteractableThemeShaderUtils.InitMaterialPropertyBlock(host, shaderProperties);
@@ -80,94 +80,28 @@ namespace Microsoft.MixedReality.Toolkit.UI
             {
                 UIMaterialInstantiator.TryCreateMaterialCopy(graphic);
             }
-
-            // Need to update reset history tracking now that property blocks are populated correctly via above code
-            var keys = new List<ThemeStateProperty>(originalStateValues.Keys);
-            foreach (var value in keys)
-            {
-                originalStateValues[value] = GetProperty(value);
-            }
-        }
-        /// <inheritdoc />
-        public override ThemePropertyValue GetProperty(ThemeStateProperty property)
-        {
-            var result = new ThemePropertyValue();
-
-            int propId = property.GetShaderPropertyId();
-
-            if (renderer != null)
-            {
-                renderer.GetPropertyBlock(propertyBlock);
-                switch (property.Type)
-                {
-                    case ThemePropertyTypes.Color:
-                        result.Color = propertyBlock.GetVector(propId);
-                        break;
-                    case ThemePropertyTypes.Texture:
-                        result.Texture = propertyBlock.GetTexture(propId);
-                        break;
-                    case ThemePropertyTypes.ShaderFloat:
-                    case ThemePropertyTypes.ShaderRange:
-                        result.Float = propertyBlock.GetFloat(propId);
-                        break;
-                    default:
-                        break;
-                }
-            }
-            else if (graphic != null)
-            {
-                switch (property.Type)
-                {
-                    case ThemePropertyTypes.Color:
-                        result.Color = graphic.material.GetVector(propId);
-                        break;
-                    case ThemePropertyTypes.Texture:
-                        result.Texture = graphic.material.GetTexture(propId);
-                        break;
-                    case ThemePropertyTypes.ShaderFloat:
-                    case ThemePropertyTypes.ShaderRange:
-                        result.Float = graphic.material.GetFloat(propId);
-                        break;
-                    default:
-                        break;
-                }
-            }
-            return result;
         }
 
         /// <inheritdoc />
         public override void SetValue(ThemeStateProperty property, int index, float percentage)
         {
+            int propId = property.GetShaderPropertyId();
             var propValue = property.Values[index];
-
             Color newColor = property.StartValue.Color;
-            float newFloatValue = property.StartValue.Float;
+            float newFloatValue = 0;
 
             switch (property.Type)
             {
                 case ThemePropertyTypes.Color:
-                    newColor = Color.Lerp(newColor, propValue.Color, percentage);
+                    newColor = Color.Lerp(property.StartValue.Color, propValue.Color, percentage);
                     break;
                 case ThemePropertyTypes.ShaderFloat:
                 case ThemePropertyTypes.ShaderRange:
-                    newFloatValue = LerpFloat(newFloatValue, propValue.Float, percentage);
+                    newFloatValue = LerpFloat(property.StartValue.Float, propValue.Float, percentage);
                     break;
                 default:
                     break;
             }
-
-            SetShaderValue(property, newColor, propValue.Texture, newFloatValue);
-        }
-
-        /// <inheritdoc />
-        protected override void SetValue(ThemeStateProperty property, ThemePropertyValue value)
-        {
-            SetShaderValue(property, value.Color, value.Texture, value.Float);
-        }
-
-        private void SetShaderValue(ThemeStateProperty property, Color color, Texture tex, float floatValue)
-        {
-            int propId = property.GetShaderPropertyId();
 
             if (renderer != null)
             {
@@ -176,17 +110,14 @@ namespace Microsoft.MixedReality.Toolkit.UI
                 switch (property.Type)
                 {
                     case ThemePropertyTypes.Color:
-                        propertyBlock.SetColor(propId, color);
+                        propertyBlock.SetColor(propId, newColor);
                         break;
                     case ThemePropertyTypes.Texture:
-                        if (tex != null)
-                        {
-                            propertyBlock.SetTexture(propId, tex);
-                        }
+                        propertyBlock.SetTexture(propId, propValue.Texture);
                         break;
                     case ThemePropertyTypes.ShaderFloat:
                     case ThemePropertyTypes.ShaderRange:
-                        propertyBlock.SetFloat(propId, floatValue);
+                        propertyBlock.SetFloat(propId, newFloatValue);
                         break;
                     default:
                         break;
@@ -199,14 +130,14 @@ namespace Microsoft.MixedReality.Toolkit.UI
                 switch (property.Type)
                 {
                     case ThemePropertyTypes.Color:
-                        graphic.material.SetColor(propId, color);
+                        graphic.material.SetColor(propId, newColor);
                         break;
                     case ThemePropertyTypes.Texture:
-                        graphic.material.SetTexture(propId, tex);
+                        graphic.material.SetTexture(propId, propValue.Texture);
                         break;
                     case ThemePropertyTypes.ShaderFloat:
                     case ThemePropertyTypes.ShaderRange:
-                        graphic.material.SetFloat(propId, floatValue);
+                        graphic.material.SetFloat(propId, newFloatValue);
                         break;
                     default:
                         break;
@@ -214,9 +145,52 @@ namespace Microsoft.MixedReality.Toolkit.UI
             }
         }
 
-        #region Obsolete
+        /// <inheritdoc />
+        public override ThemePropertyValue GetProperty(ThemeStateProperty property)
+        {
+            startValue.Reset();
+            int propId = property.GetShaderPropertyId();
 
-        [System.Obsolete("GetFloat is no longer supported. Access the material block directly on the GameObject provided.")]
+            if (renderer != null)
+            {
+                renderer.GetPropertyBlock(propertyBlock);
+                switch (property.Type)
+                {
+                    case ThemePropertyTypes.Color:
+                        startValue.Color = propertyBlock.GetVector(propId);
+                        break;
+                    case ThemePropertyTypes.Texture:
+                        startValue.Texture = propertyBlock.GetTexture(propId);
+                        break;
+                    case ThemePropertyTypes.ShaderFloat:
+                    case ThemePropertyTypes.ShaderRange:
+                        startValue.Float = propertyBlock.GetFloat(propId);
+                        break;
+                    default:
+                        break;
+                }
+            }
+            else if (graphic != null)
+            {
+                switch (property.Type)
+                {
+                    case ThemePropertyTypes.Color:
+                        startValue.Color = graphic.material.GetVector(propId);
+                        break;
+                    case ThemePropertyTypes.Texture:
+                        startValue.Texture = graphic.material.GetTexture(propId);
+                        break;
+                    case ThemePropertyTypes.ShaderFloat:
+                    case ThemePropertyTypes.ShaderRange:
+                        startValue.Float = graphic.material.GetFloat(propId);
+                        break;
+                    default:
+                        break;
+                }
+            }
+            return startValue;
+        }
+
         public static float GetFloat(GameObject host, int propId)
         {
             if (host == null)
@@ -228,7 +202,6 @@ namespace Microsoft.MixedReality.Toolkit.UI
             return block.GetFloat(propId);
         }
 
-        [System.Obsolete("GetColor is no longer supported. Access the material block directly on the GameObject provided.")]
         public static Color GetColor(GameObject host, int propId)
         {
             if (host == null)
@@ -239,7 +212,5 @@ namespace Microsoft.MixedReality.Toolkit.UI
             MaterialPropertyBlock block = InteractableThemeShaderUtils.GetPropertyBlock(host);
             return block.GetVector(propId);
         }
-
-        #endregion
     }
 }

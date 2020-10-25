@@ -53,17 +53,17 @@ namespace Microsoft.MixedReality.Toolkit.UI
         /// <inheritdoc />
         public override void Init(GameObject host, ThemeDefinition settings)
         {
-            hostTransform = host.transform;
-            originalScale = hostTransform.localScale;
-
             base.Init(host, settings);
+
+            hostTransform = Host.transform;
+            originalScale = hostTransform.localScale;
         }
 
         /// <inheritdoc />
         public override ThemePropertyValue GetProperty(ThemeStateProperty property)
         {
             ThemePropertyValue start = new ThemePropertyValue();
-            start.Vector3 = hostTransform != null ? hostTransform.localScale : Vector3.zero;
+            start.Vector3 = hostTransform.localScale;
             return start;
         }
 
@@ -78,21 +78,7 @@ namespace Microsoft.MixedReality.Toolkit.UI
                 lerpTarget = Vector3.Scale(originalScale, lerpTarget);
             }
 
-            SetScale(Vector3.Lerp(property.StartValue.Vector3, lerpTarget, percentage));
-        }
-
-        /// <inheritdoc />
-        protected override void SetValue(ThemeStateProperty property, ThemePropertyValue value)
-        {
-            SetScale(value.Vector3);
-        }
-
-        private void SetScale(Vector3 newScale)
-        {
-            if (hostTransform != null)
-            {
-                hostTransform.localScale = newScale;
-            }
+            hostTransform.localScale = Vector3.Lerp(property.StartValue.Vector3, lerpTarget, percentage);
         }
     }
 }

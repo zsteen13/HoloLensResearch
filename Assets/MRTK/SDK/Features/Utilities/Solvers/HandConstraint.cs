@@ -51,8 +51,8 @@ namespace Microsoft.MixedReality.Toolkit.Utilities.Solvers
         /// </summary>
         public SolverSafeZone SafeZone
         {
-            get => safeZone;
-            set => safeZone = value;
+            get { return safeZone; }
+            set { safeZone = value; }
         }
 
         [SerializeField]
@@ -64,8 +64,8 @@ namespace Microsoft.MixedReality.Toolkit.Utilities.Solvers
         /// </summary>
         public float SafeZoneBuffer
         {
-            get => safeZoneBuffer;
-            set => safeZoneBuffer = value;
+            get { return safeZoneBuffer; }
+            set { safeZoneBuffer = value; }
         }
 
         [SerializeField]
@@ -77,8 +77,8 @@ namespace Microsoft.MixedReality.Toolkit.Utilities.Solvers
         /// </summary>
         public bool UpdateWhenOppositeHandNear
         {
-            get => updateWhenOppositeHandNear;
-            set => updateWhenOppositeHandNear = value;
+            get { return updateWhenOppositeHandNear; }
+            set { updateWhenOppositeHandNear = value; }
         }
 
         [SerializeField]
@@ -90,8 +90,8 @@ namespace Microsoft.MixedReality.Toolkit.Utilities.Solvers
         /// </summary>
         public bool HideHandCursorsOnActivate
         {
-            get => hideHandCursorsOnActivate;
-            set => hideHandCursorsOnActivate = value;
+            get { return hideHandCursorsOnActivate; }
+            set { hideHandCursorsOnActivate = value; }
         }
 
         /// <summary>
@@ -115,7 +115,7 @@ namespace Microsoft.MixedReality.Toolkit.Utilities.Solvers
         }
 
         [SerializeField]
-        [Tooltip("Specifies how the solver should rotate when tracking the hand.")]
+        [Tooltip("Specifies how the solver should rotate when tracking the hand. ")]
         private SolverRotationBehavior rotationBehavior = SolverRotationBehavior.LookAtMainCamera;
 
         /// <summary>
@@ -123,36 +123,8 @@ namespace Microsoft.MixedReality.Toolkit.Utilities.Solvers
         /// </summary>
         public SolverRotationBehavior RotationBehavior
         {
-            get => rotationBehavior;
-            set => rotationBehavior = value;
-        }
-
-        /// <summary>
-        /// Specifies how the solver's offset relative to the hand will be computed.
-        /// </summary>
-        public enum SolverOffsetBehavior
-        {
-            /// <summary>
-            /// Uses the object-to-head vector to compute an offset independent of hand rotation.
-            /// </summary>
-            LookAtCameraRotation,
-            /// <summary>
-            /// Uses the object-to-head vector to compute an offset independent of look at camera rotation.
-            /// </summary>
-            TrackedObjectRotation
-        }
-
-        [SerializeField]
-        [Tooltip("Specifies how the solver's offset relative to the hand will be computed.")]
-        private SolverOffsetBehavior offsetBehavior = SolverOffsetBehavior.LookAtCameraRotation;
-
-        /// <summary>
-        /// Specifies how the solver's offset relative to the hand will be computed.
-        /// </summary>
-        public SolverOffsetBehavior OffsetBehavior
-        {
-            get => offsetBehavior;
-            set => offsetBehavior = value;
+            get { return rotationBehavior; }
+            set { rotationBehavior = value; }
         }
 
         [SerializeField]
@@ -164,8 +136,8 @@ namespace Microsoft.MixedReality.Toolkit.Utilities.Solvers
         /// </summary>
         public UnityEvent OnHandActivate
         {
-            get => onHandActivate;
-            set => onHandActivate = value;
+            get { return onHandActivate; }
+            set { onHandActivate = value; }
         }
 
         [SerializeField]
@@ -177,8 +149,8 @@ namespace Microsoft.MixedReality.Toolkit.Utilities.Solvers
         /// </summary>
         public UnityEvent OnHandDeactivate
         {
-            get => onHandDeactivate;
-            set => onHandDeactivate = value;
+            get { return onHandDeactivate; }
+            set { onHandDeactivate = value; }
         }
 
         [SerializeField]
@@ -190,8 +162,8 @@ namespace Microsoft.MixedReality.Toolkit.Utilities.Solvers
         /// </summary>
         public UnityEvent OnFirstHandDetected
         {
-            get => onFirstHandDetected;
-            set => onFirstHandDetected = value;
+            get { return onFirstHandDetected; }
+            set { onFirstHandDetected = value; }
         }
 
         [SerializeField]
@@ -203,8 +175,8 @@ namespace Microsoft.MixedReality.Toolkit.Utilities.Solvers
         /// </summary>
         public UnityEvent OnLastHandLost
         {
-            get => onLastHandLost;
-            set => onLastHandLost = value;
+            get { return onLastHandLost; }
+            set { onLastHandLost = value; }
         }
 
         private Handedness previousHandedness = Handedness.None;
@@ -231,7 +203,7 @@ namespace Microsoft.MixedReality.Toolkit.Utilities.Solvers
                 bool isValidController = IsValidController(trackedController);
                 if (!isValidController)
                 {
-                    // Attempt to switch hands by asking solver handler to prefer the other controller if available
+                    // Attempt to switch by hands by asking solver handler to prefer the other controller if available
                     SolverHandler.PreferredTrackedHandedness = SolverHandler.CurrentTrackedHandedness.GetOppositeHandedness();
                     SolverHandler.RefreshTrackedObject();
 
@@ -331,7 +303,7 @@ namespace Microsoft.MixedReality.Toolkit.Utilities.Solvers
                 handBounds.Bounds.TryGetValue(trackedController.ControllerHandedness, out trackedHandBounds))
             {
                 float distance;
-                Ray ray = CalculateProjectedSafeZoneRay(goalPosition, SolverHandler.TransformTarget, trackedController, safeZone, OffsetBehavior);
+                Ray ray = CalculateProjectedSafeZoneRay(goalPosition, trackedController, safeZone);
                 trackedHandBounds.Expand(safeZoneBuffer);
 
                 if (trackedHandBounds.IntersectRay(ray, out distance))
@@ -435,25 +407,17 @@ namespace Microsoft.MixedReality.Toolkit.Utilities.Solvers
             return false;
         }
 
-        private static Ray CalculateProjectedSafeZoneRay(Vector3 origin, Transform targetTransform, IMixedRealityController hand, SolverSafeZone handSafeZone, SolverOffsetBehavior offsetBehavior)
+        private static Ray CalculateProjectedSafeZoneRay(Vector3 origin, IMixedRealityController hand, SolverSafeZone handSafeZone)
         {
             Vector3 direction;
-            Vector3 lookAtCamera = targetTransform.transform.position - CameraCache.Main.transform.position;
 
             switch (handSafeZone)
             {
                 default:
                 case SolverSafeZone.UlnarSide:
                     {
-                        if (offsetBehavior == SolverOffsetBehavior.TrackedObjectRotation)
-                        {
-                            direction = targetTransform.right;
-                        }
-                        else
-                        {
-                            direction = Vector3.Cross(lookAtCamera, Vector3.up);
-                            direction = IsPalmFacingCamera(hand) ? direction : -direction;
-                        }
+                        direction = Vector3.Cross(CameraCache.Main.transform.forward, Vector3.up);
+                        direction = IsPalmFacingCamera(hand) ? direction : -direction;
 
                         if (hand.ControllerHandedness.IsLeft())
                         {
@@ -464,16 +428,8 @@ namespace Microsoft.MixedReality.Toolkit.Utilities.Solvers
 
                 case SolverSafeZone.RadialSide:
                     {
-
-                        if (offsetBehavior == SolverOffsetBehavior.TrackedObjectRotation)
-                        {
-                            direction = -targetTransform.right;
-                        }
-                        else
-                        {
-                            direction = Vector3.Cross(lookAtCamera, Vector3.up);
-                            direction = IsPalmFacingCamera(hand) ? direction : -direction;
-                        }
+                        direction = Vector3.Cross(CameraCache.Main.transform.forward, Vector3.up);
+                        direction = IsPalmFacingCamera(hand) ? direction : -direction;
 
                         if (hand.ControllerHandedness == Handedness.Right)
                         {
@@ -484,27 +440,13 @@ namespace Microsoft.MixedReality.Toolkit.Utilities.Solvers
 
                 case SolverSafeZone.AboveFingerTips:
                     {
-                        if (offsetBehavior == SolverOffsetBehavior.TrackedObjectRotation)
-                        {
-                            direction = targetTransform.forward;
-                        }
-                        else
-                        {
-                            direction = CameraCache.Main.transform.up;
-                        }
+                        direction = CameraCache.Main.transform.up;
                     }
                     break;
 
                 case SolverSafeZone.BelowWrist:
                     {
-                        if (offsetBehavior == SolverOffsetBehavior.TrackedObjectRotation)
-                        {
-                            direction = -targetTransform.forward;
-                        }
-                        else
-                        {
-                            direction = -CameraCache.Main.transform.up;
-                        }
+                        direction = -CameraCache.Main.transform.up;
                     }
                     break;
             }
@@ -537,12 +479,7 @@ namespace Microsoft.MixedReality.Toolkit.Utilities.Solvers
             return controller.ControllerHandedness != Handedness.None;
         }
 
-        /// <summary>
-        /// Returns the first detected controller in the input system that matches the passed-in handedness
-        /// </summary>
-        /// <param name="handedness">The handedness of the returned controller</param>
-        /// <returns>The IMixedRealityController for the desired handedness, or null if none are present.</returns>
-        protected static IMixedRealityController GetController(Handedness handedness)
+        private static IMixedRealityController GetController(Handedness handedness)
         {
             foreach (IMixedRealityController c in CoreServices.InputSystem.DetectedControllers)
             {

@@ -56,7 +56,7 @@ namespace Microsoft.MixedReality.Toolkit.Build.Editor
         }
 
         /// <summary>
-        /// Gets the build configuration type as a WSABuildType enum
+        /// Gets the build configuraition type as a WSABuildType enum
         /// </summary>
         public static WSABuildType BuildConfigType
         {
@@ -134,7 +134,7 @@ namespace Microsoft.MixedReality.Toolkit.Build.Editor
         /// </summary>
         public static bool UseSSL
         {
-            get => EditorPreferences.Get(EDITOR_PREF_USE_SSL, false);
+            get => EditorPreferences.Get(EDITOR_PREF_USE_SSL, true);
             set => EditorPreferences.Set(EDITOR_PREF_USE_SSL, value);
         }
 

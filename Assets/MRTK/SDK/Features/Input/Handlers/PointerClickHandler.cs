@@ -15,15 +15,15 @@ namespace Microsoft.MixedReality.Toolkit.Input
     {
         [SerializeField]
         [Tooltip("The input actions to be recognized on pointer up.")]
-        private InputActionEventPair onPointerUpActionEvent = default(InputActionEventPair);
+        private InputActionEventPair onPointerUpActionEvent;
 
         [SerializeField]
         [Tooltip("The input actions to be recognized on pointer down.")]
-        private InputActionEventPair onPointerDownActionEvent = default(InputActionEventPair);
+        private InputActionEventPair onPointerDownActionEvent;
 
         [SerializeField]
         [Tooltip("The input actions to be recognized on pointer clicked.")]
-        private InputActionEventPair onPointerClickedActionEvent = default(InputActionEventPair);
+        private InputActionEventPair onPointerClickedActionEvent;
 
         private void Awake()
         {

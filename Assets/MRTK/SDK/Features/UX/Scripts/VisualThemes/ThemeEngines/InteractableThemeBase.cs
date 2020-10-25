@@ -79,15 +79,6 @@ namespace Microsoft.MixedReality.Toolkit.UI
         /// <returns>Default ThemeDefinition to initialize with the current theme engine implementation</returns>
         public abstract ThemeDefinition GetDefaultThemeDefinition();
 
-        /// <summary>
-        /// Instruct theme to set value for current property with ThemePropertyValue value provided
-        /// </summary>
-        /// <param name="property">property to update value</param>
-        /// <param name="value">Value for theme to set</param>
-        protected abstract void SetValue(ThemeStateProperty property, ThemePropertyValue value);
-
-        protected Dictionary<ThemeStateProperty, ThemePropertyValue> originalStateValues = new Dictionary<ThemeStateProperty, ThemePropertyValue>();
-
         private bool hasFirstState = false;
         private int lastState = -1;
 
@@ -129,7 +120,7 @@ namespace Microsoft.MixedReality.Toolkit.UI
         {
             Host = host;
 
-            StateProperties = new List<ThemeStateProperty>();
+            this.StateProperties = new List<ThemeStateProperty>();
             foreach (ThemeStateProperty stateProp in definition.StateProperties)
             {
                 // This is a temporary workaround to support backward compatible themes
@@ -140,7 +131,7 @@ namespace Microsoft.MixedReality.Toolkit.UI
                     stateProp.MigrateShaderData();
                 }
 
-                StateProperties.Add(new ThemeStateProperty()
+                this.StateProperties.Add(new ThemeStateProperty()
                 {
                     Name = stateProp.Name,
                     Type = stateProp.Type,
@@ -149,14 +140,12 @@ namespace Microsoft.MixedReality.Toolkit.UI
                     TargetShader = stateProp.TargetShader,
                     ShaderPropertyName = stateProp.ShaderPropertyName,
                 });
-
-                originalStateValues.Add(stateProp, GetProperty(stateProp));
             }
 
-            Properties = new List<ThemeProperty>();
+            this.Properties = new List<ThemeProperty>();
             foreach (ThemeProperty prop in definition.CustomProperties)
             {
-                Properties.Add(new ThemeProperty()
+                this.Properties.Add(new ThemeProperty()
                 {
                     Name = prop.Name,
                     Tooltip = prop.Tooltip,
@@ -175,18 +164,6 @@ namespace Microsoft.MixedReality.Toolkit.UI
             }
 
             Loaded = true;
-        }
-
-        /// <summary>
-        /// Resets properties on Host GameObject to their original values when Init() was called for this theme engine.
-        /// Useful for reverting changes done by this theme engine.
-        /// </summary>
-        public virtual void Reset()
-        {
-            foreach (var originalState in originalStateValues)
-            {
-                SetValue(originalState.Key, originalState.Value);
-            }
         }
 
         /// <summary>
@@ -244,23 +221,6 @@ namespace Microsoft.MixedReality.Toolkit.UI
         protected int LerpInt(int s, int e, float t)
         {
             return Mathf.RoundToInt((e - s) * t) + s;
-        }
-
-        protected ThemeProperty GetThemeProperty(int index)
-        {
-            if (index >= 0)
-            {
-                if (Properties != null && Properties.Count > index)
-                {
-                    return Properties[index];
-                }
-
-                // If Theme's data does not have desired property, return defaults.
-                // If index is not in range, throw exception to fail fast. 
-                return GetDefaultThemeDefinition().CustomProperties[index];
-            }
-
-            return null;
         }
     }
 }

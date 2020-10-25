@@ -7,9 +7,6 @@ using UnityEngine;
 
 namespace Microsoft.MixedReality.Toolkit.Input
 {
-    /// <summary>
-    /// Profile that determines relevant overrides and properties for controller visualization
-    /// </summary>
     [CreateAssetMenu(menuName = "Mixed Reality Toolkit/Profiles/Mixed Reality Controller Visualization Profile", fileName = "MixedRealityControllerVisualizationProfile", order = (int)CreateProfileMenuItemIndices.ControllerVisualization)]
     [MixedRealityServiceProfile(typeof(IMixedRealityControllerVisualizer))]
     public class MixedRealityControllerVisualizationProfile : BaseMixedRealityProfile
@@ -23,8 +20,8 @@ namespace Microsoft.MixedReality.Toolkit.Input
         /// </summary>
         public bool RenderMotionControllers
         {
-            get =>  renderMotionControllers;
-            private set => renderMotionControllers = value;
+            get { return renderMotionControllers; }
+            private set { renderMotionControllers = value; }
         }
 
         [SerializeField]
@@ -37,8 +34,8 @@ namespace Microsoft.MixedReality.Toolkit.Input
         /// </summary>
         public SystemType DefaultControllerVisualizationType
         {
-            get => defaultControllerVisualizationType;
-            private set => defaultControllerVisualizationType = value;
+            get { return defaultControllerVisualizationType; }
+            private set { defaultControllerVisualizationType = value; }
         }
 
         [SerializeField]
@@ -50,8 +47,8 @@ namespace Microsoft.MixedReality.Toolkit.Input
         /// </summary>
         public bool UseDefaultModels
         {
-            get => useDefaultModels;
-            private set => useDefaultModels = value;
+            get { return useDefaultModels; }
+            private set { useDefaultModels = value; }
         }
 
         [SerializeField]
@@ -63,8 +60,8 @@ namespace Microsoft.MixedReality.Toolkit.Input
         /// </summary>
         public Material DefaultControllerModelMaterial
         {
-            get => defaultControllerModelMaterial;
-            private set => defaultControllerModelMaterial = value;
+            get { return defaultControllerModelMaterial; }
+            private set { defaultControllerModelMaterial = value; }
         }
 
         [SerializeField]
@@ -79,8 +76,8 @@ namespace Microsoft.MixedReality.Toolkit.Input
         /// </remarks>
         public GameObject GlobalLeftHandModel
         {
-            get => globalLeftControllerModel;
-            private set => globalLeftControllerModel = value;
+            get { return globalLeftControllerModel; }
+            private set { globalLeftControllerModel = value; }
         }
 
         [SerializeField]
@@ -95,8 +92,8 @@ namespace Microsoft.MixedReality.Toolkit.Input
         /// </remarks>
         public GameObject GlobalRightHandModel
         {
-            get => globalRightControllerModel;
-            private set => globalRightControllerModel = value;
+            get { return globalRightControllerModel; }
+            private set { globalRightControllerModel = value; }
         }
 
         [SerializeField]
@@ -111,8 +108,8 @@ namespace Microsoft.MixedReality.Toolkit.Input
         /// </remarks>
         public GameObject GlobalLeftHandVisualizer
         {
-            get => globalLeftHandVisualizer;
-            private set => globalLeftHandVisualizer = value;
+            get { return globalLeftHandVisualizer; }
+            private set { globalLeftHandVisualizer = value; }
         }
 
         [SerializeField]
@@ -127,8 +124,8 @@ namespace Microsoft.MixedReality.Toolkit.Input
         /// </remarks>
         public GameObject GlobalRightHandVisualizer
         {
-            get => globalRightHandVisualizer;
-            private set => globalRightHandVisualizer = value;
+            get { return globalRightHandVisualizer; }
+            private set { globalRightHandVisualizer = value; }
         }
 
         [SerializeField]
@@ -218,7 +215,7 @@ namespace Microsoft.MixedReality.Toolkit.Input
         {
             return setting.ControllerType != null &&
                 setting.ControllerType.Type == controllerType &&
-                setting.Handedness.HasFlag(hand) && setting.Handedness != Handedness.None;
+                (setting.Handedness == hand || setting.Handedness == Handedness.Both);
         }
     }
 }

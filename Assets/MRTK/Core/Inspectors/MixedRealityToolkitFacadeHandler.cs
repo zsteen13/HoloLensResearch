@@ -57,7 +57,7 @@ namespace Microsoft.MixedReality.Toolkit.Utilities.Facades
         [UnityEditor.Callbacks.DidReloadScripts]
         private static void OnScriptsReloaded()
         {
-            // If scripts were reloaded, clear everything and start over
+            // If scripts were reloaded, nuke everything and start over
             CleanupCurrentFacades();
         }
 
@@ -157,7 +157,7 @@ namespace Microsoft.MixedReality.Toolkit.Utilities.Facades
                     // Else item is valid and exists in our list. Remove from list
                     serviceSet.Remove(facade.Service);
 
-                    // Ensure valid facades are parented under the current MRTK active instance
+                    //Ensure valid facades are parented under the current MRTK active instance
                     if (facade.transform.parent != mrtkTransform)
                     {
                         facade.transform.parent = mrtkTransform;

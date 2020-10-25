@@ -1,11 +1,12 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using Microsoft.MixedReality.Toolkit.Experimental.UI;
 using Microsoft.MixedReality.Toolkit.UI;
 using Microsoft.MixedReality.Toolkit.Utilities;
 using UnityEngine;
 
-namespace Microsoft.MixedReality.Toolkit.Utilities
+namespace Microsoft.MixedReality.Toolkit.Experimental.Utilities
 {
     /// <summary>
     /// Interface defining a migration handler, which is used to migrate assets as they
@@ -24,8 +25,6 @@ namespace Microsoft.MixedReality.Toolkit.Utilities
         {
             var manipHandler = gameObject.GetComponent<ManipulationHandler>();
             var objManip = gameObject.AddComponent<ObjectManipulator>();
-
-            objManip.enabled = manipHandler.enabled;
 
             objManip.HostTransform = manipHandler.HostTransform;
 
@@ -106,15 +105,6 @@ namespace Microsoft.MixedReality.Toolkit.Utilities
             objManip.OnManipulationEnded = manipHandler.OnManipulationEnded;
             objManip.OnHoverEntered = manipHandler.OnHoverEntered;
             objManip.OnHoverExited = manipHandler.OnHoverExited;
-
-            // finally check if there's a CursorContextManipulationHandler on the gameObject that we have to swap
-            CursorContextManipulationHandler cursorContextManipHandler = gameObject.GetComponent<CursorContextManipulationHandler>();
-            if (cursorContextManipHandler)
-            {
-                gameObject.AddComponent<CursorContextObjectManipulator>();
-                // remove old component
-                Object.DestroyImmediate(cursorContextManipHandler);
-            }
 
             Object.DestroyImmediate(manipHandler);
         }

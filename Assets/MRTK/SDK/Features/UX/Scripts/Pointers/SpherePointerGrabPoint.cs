@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
-using Unity.Profiling;
 using UnityEngine;
 
 namespace Microsoft.MixedReality.Toolkit.Input
@@ -32,17 +31,12 @@ namespace Microsoft.MixedReality.Toolkit.Input
             }
         }
 
-        private static readonly ProfilerMarker LateUpdatePerfMarker = new ProfilerMarker("[MRTK] SpherePointerGrabPoint.LateUpdate");
-
         private void LateUpdate()
         {
-            using (LateUpdatePerfMarker.Auto())
+            if (pointerVisual.TetherVisualsEnabled)
             {
-                if (pointerVisual.TetherVisualsEnabled)
-                {
-                    pointMatrix = Matrix4x4.TRS(pointerVisual.TetherEndPoint.position, pointerVisual.TetherEndPoint.rotation, Vector3.one * scale);
-                    Graphics.DrawMesh(grabPointMesh, pointMatrix, grabPointMaterial, pointerVisual.gameObject.layer);
-                }
+                pointMatrix = Matrix4x4.TRS(pointerVisual.TetherEndPoint.position, pointerVisual.TetherEndPoint.rotation, Vector3.one * scale);
+                Graphics.DrawMesh(grabPointMesh, pointMatrix, grabPointMaterial, pointerVisual.gameObject.layer);
             }
         }
     }

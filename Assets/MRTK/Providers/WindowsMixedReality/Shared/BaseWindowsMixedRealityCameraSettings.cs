@@ -4,6 +4,10 @@
 using Microsoft.MixedReality.Toolkit.CameraSystem;
 using Microsoft.MixedReality.Toolkit.Utilities;
 
+#if WINDOWS_UWP
+using Windows.Foundation.Metadata;
+#endif // WINDOWS_UWP
+
 namespace Microsoft.MixedReality.Toolkit.WindowsMixedReality
 {
     /// <summary>
@@ -49,10 +53,9 @@ namespace Microsoft.MixedReality.Toolkit.WindowsMixedReality
 
         private WindowsMixedRealityCameraSettingsProfile Profile => ConfigurationProfile as WindowsMixedRealityCameraSettingsProfile;
 
-        private static readonly bool isTryGetViewConfigurationSupported = Windows.Utilities.WindowsApiChecker.IsMethodAvailable(
-            "Windows.Graphics.Holographic",
-            "HolographicDisplay",
-            "TryGetViewConfiguration");
+#if WINDOWS_UWP
+        private static readonly bool isTryGetViewConfigurationSupported = ApiInformation.IsMethodPresent("Windows.Graphics.Holographic.HolographicDisplay", "TryGetViewConfiguration");
+#endif // WINDOWS_UWP
 
         private WindowsMixedRealityReprojectionUpdater reprojectionUpdater = null;
 

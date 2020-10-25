@@ -25,10 +25,7 @@ namespace Microsoft.MixedReality.Toolkit.Utilities
             }
         }
 
-        /// <summary>
-        /// The property name of the clip sphere data within the shader.
-        /// </summary>
-        protected int clipSphereID;
+        private int clipSphereID;
 
         /// <inheritdoc />
         protected override string Keyword
@@ -42,10 +39,7 @@ namespace Microsoft.MixedReality.Toolkit.Utilities
             get { return "_ClipSphereSide"; }
         }
 
-        /// <summary>
-        /// Renders a visual representation of the clipping primitive when selected.
-        /// </summary>
-        protected void OnDrawGizmosSelected()
+        private void OnDrawGizmosSelected()
         {
             if (enabled)
             {

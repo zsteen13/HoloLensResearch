@@ -27,19 +27,20 @@ namespace Microsoft.MixedReality.Toolkit.Input
         public SimulatedArticulatedHand(TrackingState trackingState, Handedness controllerHandedness, IMixedRealityInputSource inputSource = null, MixedRealityInteractionMapping[] interactions = null)
                 : base(trackingState, controllerHandedness, inputSource, interactions)
         {
-            handDefinition = new ArticulatedHandDefinition(inputSource, controllerHandedness);
         }
 
         /// <summary>
-        /// The definition and data store for this articulated hand class.
-        /// </summary>
-        protected ArticulatedHandDefinition handDefinition;
-
-        /// <summary>
-        /// The simulated articulated hand's default interactions.
+        /// The Windows Mixed Reality Controller default interactions.
         /// </summary>
         /// <remarks>A single interaction mapping works for both left and right controllers.</remarks>
-        public override MixedRealityInteractionMapping[] DefaultInteractions => handDefinition?.DefaultInteractions;
+        public override MixedRealityInteractionMapping[] DefaultInteractions => new[]
+        {
+            new MixedRealityInteractionMapping(0, "Spatial Pointer", AxisType.SixDof, DeviceInputType.SpatialPointer),
+            new MixedRealityInteractionMapping(1, "Spatial Grip", AxisType.SixDof, DeviceInputType.SpatialGrip),
+            new MixedRealityInteractionMapping(2, "Select", AxisType.Digital, DeviceInputType.Select),
+            new MixedRealityInteractionMapping(3, "Grab", AxisType.SingleAxis, DeviceInputType.TriggerPress),
+            new MixedRealityInteractionMapping(4, "Index Finger Pose", AxisType.SixDof, DeviceInputType.IndexFinger),
+        };
 
         /// <inheritdoc />
         protected override void UpdateInteractions(SimulatedHandData handData)
@@ -62,6 +63,7 @@ namespace Microsoft.MixedReality.Toolkit.Input
                 currentPointerPose.Rotation = Quaternion.LookRotation(ray.direction);
 
                 currentGripPose = jointPoses[TrackedHandJoint.Palm];
+
                 currentIndexPose = jointPoses[TrackedHandJoint.IndexTip];
             }
 
@@ -100,6 +102,20 @@ namespace Microsoft.MixedReality.Toolkit.Input
                         }
                         break;
                     case DeviceInputType.Select:
+                        Interactions[i].BoolData = handData.IsPinching;
+
+                        if (Interactions[i].Changed)
+                        {
+                            if (Interactions[i].BoolData)
+                            {
+                                CoreServices.InputSystem?.RaiseOnInputDown(InputSource, ControllerHandedness, Interactions[i].MixedRealityInputAction);
+                            }
+                            else
+                            {
+                                CoreServices.InputSystem?.RaiseOnInputUp(InputSource, ControllerHandedness, Interactions[i].MixedRealityInputAction);
+                            }
+                        }
+                        break;
                     case DeviceInputType.TriggerPress:
                         Interactions[i].BoolData = handData.IsPinching;
 

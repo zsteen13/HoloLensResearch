@@ -3,7 +3,6 @@
 
 using Microsoft.MixedReality.Toolkit.Utilities;
 using System.Collections.Generic;
-using Unity.Profiling;
 using UnityEngine;
 using UInput = UnityEngine.Input;
 
@@ -54,45 +53,40 @@ namespace Microsoft.MixedReality.Toolkit.Input.UnityInput
 
         private List<UnityTouchController> touchesToRemove = new List<UnityTouchController>();
 
-        private static readonly ProfilerMarker UpdatePerfMarker = new ProfilerMarker("[MRTK] UnityTouchDeviceManager.Update");
-
         /// <inheritdoc />
         public override void Update()
         {
-            using (UpdatePerfMarker.Auto())
+            base.Update();
+
+            // Ensure that touch up and source lost events are at least one frame apart.
+            for (int i = 0; i < touchesToRemove.Count; i++)
             {
-                base.Update();
+                IMixedRealityController controller = touchesToRemove[i];
+                Service?.RaiseSourceLost(controller.InputSource, controller);
+            }
+            touchesToRemove.Clear();
 
-                // Ensure that touch up and source lost events are at least one frame apart.
-                for (int i = 0; i < touchesToRemove.Count; i++)
+            int touchCount = UInput.touchCount;
+            for (int i = 0; i < touchCount; i++)
+            {
+                Touch touch = UInput.touches[i];
+
+                // Construct a ray from the current touch coordinates
+                Ray ray = CameraCache.Main.ScreenPointToRay(touch.position);
+
+                switch (touch.phase)
                 {
-                    IMixedRealityController controller = touchesToRemove[i];
-                    Service?.RaiseSourceLost(controller.InputSource, controller);
-                }
-                touchesToRemove.Clear();
-
-                int touchCount = UInput.touchCount;
-                for (int i = 0; i < touchCount; i++)
-                {
-                    Touch touch = UInput.touches[i];
-
-                    // Construct a ray from the current touch coordinates
-                    Ray ray = CameraCache.Main.ScreenPointToRay(touch.position);
-
-                    switch (touch.phase)
-                    {
-                        case TouchPhase.Began:
-                            AddTouchController(touch, ray);
-                            break;
-                        case TouchPhase.Moved:
-                        case TouchPhase.Stationary:
-                            UpdateTouchData(touch, ray);
-                            break;
-                        case TouchPhase.Ended:
-                        case TouchPhase.Canceled:
-                            RemoveTouchController(touch);
-                            break;
-                    }
+                    case TouchPhase.Began:
+                        AddTouchController(touch, ray);
+                        break;
+                    case TouchPhase.Moved:
+                    case TouchPhase.Stationary:
+                        UpdateTouchData(touch, ray);
+                        break;
+                    case TouchPhase.Ended:
+                    case TouchPhase.Canceled:
+                        RemoveTouchController(touch);
+                        break;
                 }
             }
         }
@@ -118,89 +112,75 @@ namespace Microsoft.MixedReality.Toolkit.Input.UnityInput
             ActiveTouches.Clear();
         }
 
-        private static readonly ProfilerMarker AddTouchControllerPerfMarker = new ProfilerMarker("[MRTK] UnityTouchDeviceManager.AddTouchController");
-
         private void AddTouchController(Touch touch, Ray ray)
         {
-            using (AddTouchControllerPerfMarker.Auto())
+            UnityTouchController controller;
+
+            if (!ActiveTouches.TryGetValue(touch.fingerId, out controller))
             {
-                UnityTouchController controller;
+                IMixedRealityInputSource inputSource = null;
 
-                if (!ActiveTouches.TryGetValue(touch.fingerId, out controller))
+                if (Service != null)
                 {
-                    IMixedRealityInputSource inputSource = null;
-
-                    if (Service != null)
-                    {
-                        var pointers = RequestPointers(SupportedControllerType.TouchScreen, Handedness.Any);
-                        inputSource = Service.RequestNewGenericInputSource($"Touch {touch.fingerId}", pointers);
-                    }
-
-                    controller = new UnityTouchController(TrackingState.NotApplicable, Handedness.Any, inputSource);
-
-                    if (inputSource != null)
-                    {
-                        for (int i = 0; i < inputSource.Pointers.Length; i++)
-                        {
-                            inputSource.Pointers[i].Controller = controller;
-                            var touchPointer = (IMixedRealityTouchPointer)inputSource.Pointers[i];
-                            touchPointer.TouchRay = ray;
-                            touchPointer.FingerId = touch.fingerId;
-                        }
-                    }
-
-                    ActiveTouches.Add(touch.fingerId, controller);
+                    var pointers = RequestPointers(SupportedControllerType.TouchScreen, Handedness.Any);
+                    inputSource = Service.RequestNewGenericInputSource($"Touch {touch.fingerId}", pointers);
                 }
 
-                Service?.RaiseSourceDetected(controller.InputSource, controller);
+                controller = new UnityTouchController(TrackingState.NotApplicable, Handedness.Any, inputSource);
 
-                controller.TouchData = touch;
-                controller.StartTouch();
+                if (inputSource != null)
+                {
+                    for (int i = 0; i < inputSource.Pointers.Length; i++)
+                    {
+                        inputSource.Pointers[i].Controller = controller;
+                        var touchPointer = (IMixedRealityTouchPointer)inputSource.Pointers[i];
+                        touchPointer.TouchRay = ray;
+                        touchPointer.FingerId = touch.fingerId;
+                    }
+                }
+
+                controller.SetupConfiguration(typeof(UnityTouchController));
+                ActiveTouches.Add(touch.fingerId, controller);
             }
-        }
 
-        private static readonly ProfilerMarker UpdateTouchDataPerfMarker = new ProfilerMarker("[MRTK] UnityTouchDeviceManager.UpdateTouchData");
+            Service?.RaiseSourceDetected(controller.InputSource, controller);
+
+            controller.TouchData = touch;
+            controller.StartTouch();
+        }
 
         private void UpdateTouchData(Touch touch, Ray ray)
         {
-            using (UpdateTouchDataPerfMarker.Auto())
+            UnityTouchController controller;
+
+            if (!ActiveTouches.TryGetValue(touch.fingerId, out controller))
             {
-                UnityTouchController controller;
-
-                if (!ActiveTouches.TryGetValue(touch.fingerId, out controller))
-                {
-                    return;
-                }
-
-                controller.TouchData = touch;
-                var pointer = (IMixedRealityTouchPointer)controller.InputSource.Pointers[0];
-                controller.ScreenPointRay = pointer.TouchRay = ray;
-                controller.Update();
+                return;
             }
-        }
 
-        private static readonly ProfilerMarker RemoveTouchControllerPerfMarker = new ProfilerMarker("[MRTK] UnityTouchDeviceManager.RemoveTouchController");
+            controller.TouchData = touch;
+            var pointer = (IMixedRealityTouchPointer)controller.InputSource.Pointers[0];
+            controller.ScreenPointRay = pointer.TouchRay = ray;
+            controller.Update();
+        }
 
         private void RemoveTouchController(Touch touch)
         {
-            using (RemoveTouchControllerPerfMarker.Auto())
+            UnityTouchController controller;
+
+            if (!ActiveTouches.TryGetValue(touch.fingerId, out controller))
             {
-                UnityTouchController controller;
-
-                if (!ActiveTouches.TryGetValue(touch.fingerId, out controller))
-                {
-                    return;
-                }
-
-                RecyclePointers(controller.InputSource);
-
-                controller.TouchData = touch;
-                controller.EndTouch();
-                // Schedule the source lost event.
-                touchesToRemove.Add(controller);
-                // Remove from the active collection
-                ActiveTouches.Remove(touch.fingerId);
+                return;
             }
+
+            RecyclePointers(controller.InputSource);
+
+            controller.TouchData = touch;
+            controller.EndTouch();
+            // Schedule the source lost event.
+            touchesToRemove.Add(controller);
+            // Remove from the active collection
+            ActiveTouches.Remove(touch.fingerId);
         }
     }
 }

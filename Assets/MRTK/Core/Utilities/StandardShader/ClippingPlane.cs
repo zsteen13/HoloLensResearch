@@ -13,10 +13,7 @@ namespace Microsoft.MixedReality.Toolkit.Utilities
     [AddComponentMenu("Scripts/MRTK/Core/ClippingPlane")]
     public class ClippingPlane : ClippingPrimitive
     {
-        /// <summary>
-        /// The property name of the clip plane data within the shader.
-        /// </summary>
-        protected int clipPlaneID;
+        private int clipPlaneID;
 
         /// <inheritdoc />
         protected override string Keyword
@@ -30,10 +27,7 @@ namespace Microsoft.MixedReality.Toolkit.Utilities
             get { return "_ClipPlaneSide"; }
         }
 
-        /// <summary>
-        /// Renders a visual representation of the clipping primitive when selected.
-        /// </summary>
-        protected void OnDrawGizmosSelected()
+        private void OnDrawGizmosSelected()
         {
             if (enabled)
             {

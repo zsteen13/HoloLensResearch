@@ -32,30 +32,45 @@ namespace Microsoft.MixedReality.Toolkit.Utilities.Facades
 #endif
         }
 
-        private static readonly List<string> dataProviderList = new List<string>();
-        private static readonly Dictionary<Type, Type> inspectorTypeLookup = new Dictionary<Type, Type>();
-        private static readonly Dictionary<Type, IMixedRealityServiceInspector> inspectorInstanceLookup = new Dictionary<Type, IMixedRealityServiceInspector>();
+        private static List<string> dataProviderList = new List<string>();
+        private static Dictionary<Type, Type> inspectorTypeLookup = new Dictionary<Type, Type>();
+        private static Dictionary<Type, IMixedRealityServiceInspector> inspectorInstanceLookup = new Dictionary<Type, IMixedRealityServiceInspector>();
         private static bool initializedServiceInspectorLookup = false;
 
-        private Color proHeaderColor = new Color32(56, 56, 56, 255);
-        private Color defaultHeaderColor = new Color32(194, 194, 194, 255);
+        Color proHeaderColor = (Color)new Color32(56, 56, 56, 255);
+        Color defaultHeaderColor = (Color)new Color32(194, 194, 194, 255);
 
-#if UNITY_2019_1_OR_NEWER
-        private const int headerYOffet = -6;
-        private const int headerXOffset = 44;
-#else
-        private const int headerYOffet = 0;
-        private const int headerXOffset = 48;
-#endif
+        const int headerXOffset = 48;
+
+        [SerializeField]
+        private Texture2D logoLightTheme = null;
+
+        [SerializeField]
+        private Texture2D logoDarkTheme = null;
+
+        protected virtual void Awake()
+        {
+            string assetPath = "StandardAssets/Textures";
+
+            if (logoLightTheme == null)
+            {
+                logoLightTheme = (Texture2D)AssetDatabase.LoadAssetAtPath(MixedRealityToolkitFiles.MapRelativeFilePath($"{assetPath}/MRTK_Logo_Black.png"), typeof(Texture2D));
+            }
+
+            if (logoDarkTheme == null)
+            {
+                logoDarkTheme = (Texture2D)AssetDatabase.LoadAssetAtPath(MixedRealityToolkitFiles.MapRelativeFilePath($"{assetPath}/MRTK_Logo_White.png"), typeof(Texture2D));
+            }
+        }
 
         protected override void OnHeaderGUI()
         {
             ServiceFacade facade = (ServiceFacade)target;
-
+            
             // Draw a rect over the top of the existing header label
             var labelRect = EditorGUILayout.GetControlRect(false, 0f);
             labelRect.height = EditorGUIUtility.singleLineHeight;
-            labelRect.y -= labelRect.height - headerYOffet;
+            labelRect.y -= labelRect.height;
             labelRect.x = headerXOffset;
             labelRect.xMax -= labelRect.x * 2f;
 
@@ -81,7 +96,7 @@ namespace Microsoft.MixedReality.Toolkit.Utilities.Facades
             }
 
             if (!MixedRealityToolkit.IsInitialized || !MixedRealityToolkit.Instance.HasActiveProfile)
-            {
+            {   
                 return;
             }
 
@@ -108,11 +123,6 @@ namespace Microsoft.MixedReality.Toolkit.Utilities.Facades
 
         }
 
-        public override bool RequiresConstantRepaint()
-        {
-            return true;
-        }
-
         /// <summary>
         /// Draws a list of services that use this as a data provider
         /// </summary>
@@ -135,7 +145,7 @@ namespace Microsoft.MixedReality.Toolkit.Utilities.Facades
         }
 
         /// <summary>
-        /// Draws the custom inspector GUI for all of the service's interfaces that have custom inspectors.
+        /// Draws the custom inspector gui for all of the service's interfaces that have custom inspectors.
         /// </summary>
         private bool DrawInspector(ServiceFacade facade)
         {
@@ -310,7 +320,7 @@ namespace Microsoft.MixedReality.Toolkit.Utilities.Facades
         }
 
         /// <summary>
-        /// Draws scene GUI for facade.
+        /// Draws scene gui for facade.
         /// </summary>
         private static void DrawSceneGUI(SceneView sceneView)
         {

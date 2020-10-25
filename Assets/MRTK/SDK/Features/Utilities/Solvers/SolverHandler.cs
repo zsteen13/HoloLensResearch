@@ -254,9 +254,7 @@ namespace Microsoft.MixedReality.Toolkit.Utilities.Solvers
 
         private float lastUpdateTime;
 
-        private IMixedRealityHandJointService HandJointService 
-            => handJointService ?? CoreServices.GetInputSystemDataProvider<IMixedRealityHandJointService>();
-
+        private IMixedRealityHandJointService HandJointService => handJointService ?? (handJointService = (CoreServices.InputSystem as IMixedRealityDataProviderAccess)?.GetDataProvider<IMixedRealityHandJointService>());
         private IMixedRealityHandJointService handJointService = null;
 
         #region MonoBehaviour Implementation
@@ -309,7 +307,7 @@ namespace Microsoft.MixedReality.Toolkit.Utilities.Solvers
 
             if (UpdateSolvers)
             {
-                // Before calling solvers, update goal to be the transform so that working and transform will match
+                //Before calling solvers, update goal to be the transform so that working and transform will match
                 GoalPosition = transform.position;
                 GoalRotation = transform.rotation;
                 GoalScale = transform.localScale;
@@ -390,7 +388,7 @@ namespace Microsoft.MixedReality.Toolkit.Utilities.Solvers
 
                     if (controllerRay == null)
                     {
-                        // If no pointer found, try again on the opposite hand
+                        // If no pointer found, try again on the the opposite hand
                         currentTrackedHandedness = currentTrackedHandedness.GetOppositeHandedness();
                         controllerRay = PointerUtils.GetPointer<LinePointer>(currentTrackedHandedness);
                     }

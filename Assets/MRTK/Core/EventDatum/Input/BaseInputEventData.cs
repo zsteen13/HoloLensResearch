@@ -7,7 +7,7 @@ using UnityEngine.EventSystems;
 namespace Microsoft.MixedReality.Toolkit.Input
 {
     /// <summary>
-    /// Base class of all input events.
+    /// Base class of all Input Events.
     /// </summary>
     public abstract class BaseInputEventData : BaseEventData
     {
@@ -24,10 +24,10 @@ namespace Microsoft.MixedReality.Toolkit.Input
         /// <summary>
         /// The id of the source the event is from, for instance the hand id.
         /// </summary>
-        public uint SourceId => InputSource.SourceId;
+        public uint SourceId { get; private set; }
 
         /// <summary>
-        /// The input action for this event.
+        /// The Input Action for this event.
         /// </summary>
         public MixedRealityInputAction MixedRealityInputAction { get; private set; }
 
@@ -46,6 +46,7 @@ namespace Microsoft.MixedReality.Toolkit.Input
             EventTime = DateTime.UtcNow;
             InputSource = inputSource;
             MixedRealityInputAction = inputAction;
+            SourceId = InputSource.SourceId;
         }
     }
 }

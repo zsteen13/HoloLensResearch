@@ -13,15 +13,8 @@ namespace Microsoft.MixedReality.Toolkit.Utilities
     [AddComponentMenu("Scripts/MRTK/Core/ClippingBox")]
     public class ClippingBox : ClippingPrimitive
     {
-        /// <summary>
-        /// The property name of the clip box data within the shader.
-        /// </summary>
-        protected int clipBoxSizeID;
-
-        /// <summary>
-        /// The property name of the clip box inverse transformation matrix within the shader.
-        /// </summary>
-        protected int clipBoxInverseTransformID;
+        private int clipBoxSizeID;
+        private int clipBoxInverseTransformID;
 
         /// <inheritdoc />
         protected override string Keyword
@@ -35,10 +28,7 @@ namespace Microsoft.MixedReality.Toolkit.Utilities
             get { return "_ClipBoxSide"; }
         }
 
-        /// <summary>
-        /// Renders a visual representation of the clipping primitive when selected.
-        /// </summary>
-        protected void OnDrawGizmosSelected()
+        private void OnDrawGizmosSelected()
         {
             if (enabled)
             {

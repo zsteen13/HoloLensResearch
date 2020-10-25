@@ -41,38 +41,23 @@ namespace Microsoft.MixedReality.Toolkit.UI
         /// <inheritdoc />
         public override void Init(GameObject host, ThemeDefinition settings)
         {
-            hostTransform = host.transform;
-            originalPosition = hostTransform.localPosition;
-
             base.Init(host, settings);
+            hostTransform = Host.transform;
+            originalPosition = hostTransform.localPosition;
         }
 
         /// <inheritdoc />
         public override ThemePropertyValue GetProperty(ThemeStateProperty property)
         {
             ThemePropertyValue start = new ThemePropertyValue();
-            start.Vector3 = hostTransform != null ? hostTransform.localPosition : Vector3.zero;
+            start.Vector3 = hostTransform.localPosition;
             return start;
         }
 
         /// <inheritdoc />
         public override void SetValue(ThemeStateProperty property, int index, float percentage)
         {
-            SetOffset(Vector3.Lerp(property.StartValue.Vector3, originalPosition + property.Values[index].Vector3, percentage));
-        }
-
-        /// <inheritdoc />
-        protected override void SetValue(ThemeStateProperty property, ThemePropertyValue value)
-        {
-            SetOffset(value.Vector3);
-        }
-
-        private void SetOffset(Vector3 offset)
-        {
-            if (hostTransform != null)
-            {
-                hostTransform.localPosition = offset;
-            }
+            hostTransform.localPosition = Vector3.Lerp(property.StartValue.Vector3, originalPosition + property.Values[index].Vector3, percentage);
         }
     }
 }

@@ -68,9 +68,6 @@ namespace Microsoft.MixedReality.Toolkit.UI
                 throw new System.Exception("Can't open in state " + state);
             }
 
-            smoothProgress = 0;
-            lastSmoothProgress = 0;
-
             gameObject.SetActive(true);
 
             state = ProgressIndicatorState.Opening;
@@ -95,25 +92,6 @@ namespace Microsoft.MixedReality.Toolkit.UI
             state = ProgressIndicatorState.Closed;
 
             gameObject.SetActive(false);
-        }
-
-        /// <inheritdoc/>
-        public async Task AwaitTransitionAsync()
-        {
-            while (isActiveAndEnabled)
-            {
-                switch (state)
-                {
-                    case ProgressIndicatorState.Open:
-                    case ProgressIndicatorState.Closed:
-                        return;
-
-                    default:
-                        break;
-                }
-
-                await Task.Yield();
-            }
         }
 
         private void Update()

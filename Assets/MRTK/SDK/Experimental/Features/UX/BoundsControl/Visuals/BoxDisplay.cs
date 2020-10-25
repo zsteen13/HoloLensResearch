@@ -6,47 +6,36 @@ using UnityEngine;
 
 namespace Microsoft.MixedReality.Toolkit.Experimental.UI.BoundsControl
 {
-    /// <summary>
+    /// <summary> 
     /// BoxDisplay can be used to attach a solid box visualization to a <see cref="BoundsControl"/>
     /// The box will only be rendered if a material is assigned
     /// </summary>
     public class BoxDisplay
     {
-        // GameObject used to display the box. Parented to the rig root
+        // Game object used to display the box. Parented to the rig root
         private GameObject boxDisplay;
 
         private BoxDisplayConfiguration config;
-
-        private Vector3 cachedExtents = Vector3.zero;
-        private FlattenModeType cachedFlattenMode;
-
-        private bool isVisible = true;
 
         internal BoxDisplay(BoxDisplayConfiguration configuration)
         {
             Debug.Assert(configuration != null, "Can't create BoundsControlBoxDisplay without valid configuration");
             config = configuration;
-            config.flattenAxisScaleChanged.AddListener(UpdateDisplayWithCache);
-            config.materialChanged.AddListener(UpdateBoxDisplayMaterial);
-        }
-
-        ~BoxDisplay()
-        {
-            config.flattenAxisScaleChanged.RemoveListener(UpdateDisplayWithCache);
-            config.materialChanged.RemoveListener(UpdateBoxDisplayMaterial);
         }
 
         internal void AddBoxDisplay(Transform parent, Vector3 currentBoundsExtents, FlattenModeType flattenAxis)
         {
-            // This has to be cube even in flattened mode as flattened box display can still have a thickness of flattenAxisDisplayScale
-            boxDisplay = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            Object.Destroy(boxDisplay.GetComponent<Collider>());
-            boxDisplay.name = "box display";
-            cachedFlattenMode = flattenAxis;
-            cachedExtents = currentBoundsExtents;
-            Reset(isVisible);
-            boxDisplay.transform.localScale = GetBoxDisplayScale(currentBoundsExtents, flattenAxis);
-            boxDisplay.transform.parent = parent;
+            if (config.BoxMaterial != null)
+            {
+                // this has to be cube even in flattened mode as flattened box display can still have a thickness of flattenAxisDisplayScale
+                boxDisplay = GameObject.CreatePrimitive(PrimitiveType.Cube); 
+                GameObject.Destroy(boxDisplay.GetComponent<Collider>());
+                boxDisplay.name = "bounding box";
+
+                VisualUtils.ApplyMaterialToAllRenderers(boxDisplay, config.BoxMaterial);
+                boxDisplay.transform.localScale = GetBoxDisplayScale(currentBoundsExtents, flattenAxis);
+                boxDisplay.transform.parent = parent;
+            }
         }
 
         private Vector3 GetBoxDisplayScale(Vector3 currentBoundsExtents, FlattenModeType flattenAxis)
@@ -67,25 +56,20 @@ namespace Microsoft.MixedReality.Toolkit.Experimental.UI.BoundsControl
 
         internal void SetHighlighted()
         {
-            // Update the box material to the grabbed material
+            //update the box material to the grabbed material
             if (boxDisplay != null)
             {
                 VisualUtils.ApplyMaterialToAllRenderers(boxDisplay, config.BoxGrabbedMaterial);
             }
         }
 
-        internal void Reset(bool visible)
+        internal void ResetVisibility(bool activate)
         {
-            isVisible = visible;
-            // Set box display visibility
+            //set box display visibility
             if (boxDisplay != null)
             {
-                bool activate = config.BoxMaterial != null && isVisible; // only set active if material is set
                 boxDisplay.SetActive(activate);
-                if (activate)
-                {
-                    VisualUtils.ApplyMaterialToAllRenderers(boxDisplay, config.BoxMaterial);
-                }
+                VisualUtils.ApplyMaterialToAllRenderers(boxDisplay, config.BoxMaterial);
             }
         }
 
@@ -98,26 +82,6 @@ namespace Microsoft.MixedReality.Toolkit.Experimental.UI.BoundsControl
                 boxDisplay.transform.localScale = GetBoxDisplayScale(boundsExtents, flattenAxis);
                 boxDisplay.transform.parent = parent;
             }
-
-            cachedExtents = boundsExtents;
-            cachedFlattenMode = flattenAxis;
         }
-
-        internal void UpdateDisplayWithCache()
-        {
-            UpdateDisplay(cachedExtents, cachedFlattenMode);
-        }
-
-        internal void UpdateFlattenAxis(FlattenModeType flattenAxis)
-        {
-            cachedFlattenMode = flattenAxis;
-            UpdateDisplay(cachedExtents, flattenAxis);
-        }
-
-        internal void UpdateBoxDisplayMaterial()
-        {
-            Reset(isVisible);
-        }
-
     }
 }

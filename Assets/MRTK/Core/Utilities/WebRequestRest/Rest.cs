@@ -55,19 +55,12 @@ namespace Microsoft.MixedReality.Toolkit.Utilities
         /// <param name="query">Finalized Endpoint Query with parameters.</param>
         /// <param name="headers">Optional header information for the request.</param>
         /// <param name="timeout">Optional time in seconds before request expires.</param>
-        /// <param name="downloadHandler">Optional DownloadHandler for the request.</param>
-        /// <param name="readResponseData">Optional bool. If its true, response data will be read from web request download handler.</param>
         /// <returns>The response data.</returns>
-        public static async Task<Response> GetAsync(string query, Dictionary<string, string> headers = null, int timeout = -1, DownloadHandler downloadHandler = null, bool readResponseData = false)
+        public static async Task<Response> GetAsync(string query, Dictionary<string, string> headers = null, int timeout = -1)
         {
             using (var webRequest = UnityWebRequest.Get(query))
             {
-                if (downloadHandler != null)
-                {
-                    webRequest.downloadHandler = downloadHandler;
-                }
-
-                return await ProcessRequestAsync(webRequest, timeout, headers, readResponseData);
+                return await ProcessRequestAsync(webRequest, timeout, headers);
             }
         }
 
@@ -81,13 +74,12 @@ namespace Microsoft.MixedReality.Toolkit.Utilities
         /// <param name="query">Finalized Endpoint Query with parameters.</param>
         /// <param name="headers">Optional header information for the request.</param>
         /// <param name="timeout">Optional time in seconds before request expires.</param>
-        /// <param name="readResponseData">Optional bool. If its true, response data will be read from web request download handler.</param>
         /// <returns>The response data.</returns>
-        public static async Task<Response> PostAsync(string query, Dictionary<string, string> headers = null, int timeout = -1, bool readResponseData = false)
+        public static async Task<Response> PostAsync(string query, Dictionary<string, string> headers = null, int timeout = -1)
         {
             using (var webRequest = UnityWebRequest.Post(query, null as string))
             {
-                return await ProcessRequestAsync(webRequest, timeout, headers, readResponseData);
+                return await ProcessRequestAsync(webRequest, timeout, headers);
             }
         }
 
@@ -98,13 +90,12 @@ namespace Microsoft.MixedReality.Toolkit.Utilities
         /// <param name="formData">Form Data.</param>
         /// <param name="headers">Optional header information for the request.</param>
         /// <param name="timeout">Optional time in seconds before request expires.</param>
-        /// <param name="readResponseData">Optional bool. If its true, response data will be read from web request download handler.</param>
         /// <returns>The response data.</returns>
-        public static async Task<Response> PostAsync(string query, WWWForm formData, Dictionary<string, string> headers = null, int timeout = -1, bool readResponseData = false)
+        public static async Task<Response> PostAsync(string query, WWWForm formData, Dictionary<string, string> headers = null, int timeout = -1)
         {
             using (var webRequest = UnityWebRequest.Post(query, formData))
             {
-                return await ProcessRequestAsync(webRequest, timeout, headers, readResponseData);
+                return await ProcessRequestAsync(webRequest, timeout, headers);
             }
         }
 
@@ -115,9 +106,8 @@ namespace Microsoft.MixedReality.Toolkit.Utilities
         /// <param name="jsonData">JSON data for the request.</param>
         /// <param name="headers">Optional header information for the request.</param>
         /// <param name="timeout">Optional time in seconds before request expires.</param>
-        /// <param name="readResponseData">Optional bool. If its true, response data will be read from web request download handler.</param>
         /// <returns>The response data.</returns>
-        public static async Task<Response> PostAsync(string query, string jsonData, Dictionary<string, string> headers = null, int timeout = -1, bool readResponseData = false)
+        public static async Task<Response> PostAsync(string query, string jsonData, Dictionary<string, string> headers = null, int timeout = -1)
         {
             using (var webRequest = UnityWebRequest.Post(query, "POST"))
             {
@@ -126,7 +116,7 @@ namespace Microsoft.MixedReality.Toolkit.Utilities
                 webRequest.downloadHandler = new DownloadHandlerBuffer();
                 webRequest.SetRequestHeader("Content-Type", "application/json");
                 webRequest.SetRequestHeader("Accept", "application/json");
-                return await ProcessRequestAsync(webRequest, timeout, headers, readResponseData);
+                return await ProcessRequestAsync(webRequest, timeout, headers);
             }
         }
 
@@ -137,16 +127,15 @@ namespace Microsoft.MixedReality.Toolkit.Utilities
         /// <param name="headers">Optional header information for the request.</param>
         /// <param name="bodyData">The raw data to post.</param>
         /// <param name="timeout">Optional time in seconds before request expires.</param>
-        /// <param name="readResponseData">Optional bool. If its true, response data will be read from web request download handler.</param>
         /// <returns>The response data.</returns>
-        public static async Task<Response> PostAsync(string query, byte[] bodyData, Dictionary<string, string> headers = null, int timeout = -1, bool readResponseData = false)
+        public static async Task<Response> PostAsync(string query, byte[] bodyData, Dictionary<string, string> headers = null, int timeout = -1)
         {
             using (var webRequest = UnityWebRequest.Post(query, "POST"))
             {
                 webRequest.uploadHandler = new UploadHandlerRaw(bodyData);
                 webRequest.downloadHandler = new DownloadHandlerBuffer();
                 webRequest.SetRequestHeader("Content-Type", "application/octet-stream");
-                return await ProcessRequestAsync(webRequest, timeout, headers, readResponseData);
+                return await ProcessRequestAsync(webRequest, timeout, headers);
             }
         }
 
@@ -161,14 +150,13 @@ namespace Microsoft.MixedReality.Toolkit.Utilities
         /// <param name="jsonData">Data to be submitted.</param>
         /// <param name="headers">Optional header information for the request.</param>
         /// <param name="timeout">Optional time in seconds before request expires.</param>
-        /// <param name="readResponseData">Optional bool. If its true, response data will be read from web request download handler.</param>
         /// <returns>The response data.</returns>
-        public static async Task<Response> PutAsync(string query, string jsonData, Dictionary<string, string> headers = null, int timeout = -1, bool readResponseData = false)
+        public static async Task<Response> PutAsync(string query, string jsonData, Dictionary<string, string> headers = null, int timeout = -1)
         {
             using (var webRequest = UnityWebRequest.Put(query, jsonData))
             {
                 webRequest.SetRequestHeader("Content-Type", "application/json");
-                return await ProcessRequestAsync(webRequest, timeout, headers, readResponseData);
+                return await ProcessRequestAsync(webRequest, timeout, headers);
             }
         }
 
@@ -179,14 +167,13 @@ namespace Microsoft.MixedReality.Toolkit.Utilities
         /// <param name="bodyData">Data to be submitted.</param>
         /// <param name="headers">Optional header information for the request.</param>
         /// <param name="timeout">Optional time in seconds before request expires.</param>
-        /// <param name="readResponseData">Optional bool. If its true, response data will be read from web request download handler.</param>
         /// <returns>The response data.</returns>
-        public static async Task<Response> PutAsync(string query, byte[] bodyData, Dictionary<string, string> headers = null, int timeout = -1, bool readResponseData = false)
+        public static async Task<Response> PutAsync(string query, byte[] bodyData, Dictionary<string, string> headers = null, int timeout = -1)
         {
             using (var webRequest = UnityWebRequest.Put(query, bodyData))
             {
                 webRequest.SetRequestHeader("Content-Type", "application/octet-stream");
-                return await ProcessRequestAsync(webRequest, timeout, headers, readResponseData);
+                return await ProcessRequestAsync(webRequest, timeout, headers);
             }
         }
 
@@ -200,19 +187,18 @@ namespace Microsoft.MixedReality.Toolkit.Utilities
         /// <param name="query">Finalized Endpoint Query with parameters.</param>
         /// <param name="headers">Optional header information for the request.</param>
         /// <param name="timeout">Optional time in seconds before request expires.</param>
-        /// <param name="readResponseData">Optional bool. If its true, response data will be read from web request download handler.</param>
         /// <returns>The response data.</returns>
-        public static async Task<Response> DeleteAsync(string query, Dictionary<string, string> headers = null, int timeout = -1, bool readResponseData = false)
+        public static async Task<Response> DeleteAsync(string query, Dictionary<string, string> headers = null, int timeout = -1)
         {
             using (var webRequest = UnityWebRequest.Delete(query))
             {
-                return await ProcessRequestAsync(webRequest, timeout, headers, readResponseData);
+                return await ProcessRequestAsync(webRequest, timeout, headers);
             }
         }
 
         #endregion DELETE
 
-        private static async Task<Response> ProcessRequestAsync(UnityWebRequest webRequest, int timeout, Dictionary<string, string> headers = null, bool readResponseData = false)
+        private static async Task<Response> ProcessRequestAsync(UnityWebRequest webRequest, int timeout, Dictionary<string, string> headers = null)
         {
             if (timeout > 0)
             {
@@ -251,18 +237,11 @@ namespace Microsoft.MixedReality.Toolkit.Utilities
                 }
 
                 string responseHeaders = webRequest.GetResponseHeaders().Aggregate(string.Empty, (current, header) => $"\n{header.Key}: {header.Value}");
-                string downloadHandlerText = webRequest.downloadHandler?.text;
-                Debug.LogError($"REST Error: {webRequest.responseCode}\n{downloadHandlerText}{responseHeaders}");
-                return new Response(false, $"{responseHeaders}\n{downloadHandlerText}", webRequest.downloadHandler?.data, webRequest.responseCode);
+                Debug.LogError($"REST Error: {webRequest.responseCode}\n{webRequest.downloadHandler?.text}{responseHeaders}");
+                return new Response(false, $"{responseHeaders}\n{webRequest.downloadHandler?.text}", webRequest.downloadHandler?.data, webRequest.responseCode);
             }
-            if (readResponseData)
-            {
-                return new Response(true, webRequest.downloadHandler?.text, webRequest.downloadHandler?.data, webRequest.responseCode);
-            }
-            else // This option can be used only if action will be triggered in the same scope as the webrequest
-            {
-                return new Response(true, () => webRequest.downloadHandler?.text, () => webRequest.downloadHandler?.data, webRequest.responseCode);
-            }
+
+            return new Response(true, webRequest.downloadHandler?.text, webRequest.downloadHandler?.data, webRequest.responseCode);
         }
     }
 }

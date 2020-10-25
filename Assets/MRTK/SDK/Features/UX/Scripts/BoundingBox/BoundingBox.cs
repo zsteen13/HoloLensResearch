@@ -253,22 +253,22 @@ namespace Microsoft.MixedReality.Toolkit.UI
         }
 
         [SerializeField]
-        [Obsolete("Use a MinMaxScaleConstraint script rather than setting minimum on BoundingBox directly", false)]
+        [Obsolete("Use a TransformScaleHandler script rather than setting minimum on BoundingBox directly", false)]
         [Tooltip("Minimum scaling allowed relative to the initial size")]
         private float scaleMinimum = 0.2f;
 
         [SerializeField]
-        [Obsolete("Use a MinMaxScaleConstraint script rather than setting maximum on BoundingBox directly")]
+        [Obsolete("Use a TransformScaleHandler script rather than setting maximum on BoundingBox directly")]
         [Tooltip("Maximum scaling allowed relative to the initial size")]
         private float scaleMaximum = 2.0f;
 
 
         /// <summary>
-        /// Deprecated: Use <see cref="Microsoft.MixedReality.Toolkit.UI.MinMaxScaleConstraint"/> component instead.
+        /// Deprecated: Use TransformScaleHandler component instead.
         /// Public property for the scale minimum, in the target's local scale.
         /// Set this value with SetScaleLimits.
         /// </summary>
-        [Obsolete("Use a MinMaxScaleConstraint. ScaleMinimum as it is the authoritative value for min scale")]
+        [Obsolete("Use a TransformScaleHandler.ScaleMinimum as it is the authoritative value for min scale")]
         public float ScaleMinimum
         {
             get
@@ -282,11 +282,11 @@ namespace Microsoft.MixedReality.Toolkit.UI
         }
 
         /// <summary>
-        /// Deprecated: Use <see cref="Microsoft.MixedReality.Toolkit.UI.MinMaxScaleConstraint"/> component instead.
+        /// Deprecated: Use TransformScaleHandler component instead.
         /// Public property for the scale maximum, in the target's local scale.
         /// Set this value with SetScaleLimits.
         /// </summary>
-        [Obsolete("Use a MinMaxScaleConstraint component instead. ScaleMinimum as it is the authoritative value for max scale")]
+        [Obsolete("Use a TransformScaleHandler.ScaleMinimum as it is the authoritative value for max scale")]
         public float ScaleMaximum
         {
             get
@@ -611,7 +611,7 @@ namespace Microsoft.MixedReality.Toolkit.UI
         /// <summary>
         /// Prefab used to display rotation handles in the midpoint of each edge. Aligns the Y axis of the prefab with the pivot axis, and the X and Z axes pointing outward. If not set, spheres will be displayed instead
         /// </summary>
-        public GameObject RotationHandlePrefab
+        public GameObject RotationHandleSlatePrefab
         {
             get { return rotationHandlePrefab; }
             set
@@ -623,17 +623,6 @@ namespace Microsoft.MixedReality.Toolkit.UI
                 }
             }
         }
-
-        /// <summary>
-        /// Prefab used to display rotation handles in the midpoint of each edge. Aligns the Y axis of the prefab with the pivot axis, and the X and Z axes pointing outward. If not set, spheres will be displayed instead
-        /// </summary>
-        [Obsolete("This property has been renamed RotationHandlePrefab.")]
-        public GameObject RotationHandleSlatePrefab
-        {
-            get { return RotationHandlePrefab; }
-            set { RotationHandlePrefab = value; }
-        }
-
         [SerializeField]
         [FormerlySerializedAs("ballRadius")]
         [Tooltip("Radius of the handle geometry of rotation handles")]
@@ -1131,6 +1120,8 @@ namespace Microsoft.MixedReality.Toolkit.UI
             }
         }
 
+        
+
         /// <summary>
         /// The collider reference tracking the bounds utilized by this component during runtime
         /// </summary>
@@ -1139,6 +1130,7 @@ namespace Microsoft.MixedReality.Toolkit.UI
         private List<Handle> handles;
 
         private List<Transform> corners;
+
         /// <summary>
         /// Returns list of transforms pointing to the scale handles of the bounding box.
         /// </summary>
@@ -1165,7 +1157,7 @@ namespace Microsoft.MixedReality.Toolkit.UI
         /// <summary>
         /// Allows to manually enable wire (edge) highlighting (edges) of the bounding box.
         /// This is useful if connected to the Manipulation events of a
-        /// <see cref="Microsoft.MixedReality.Toolkit.UI.ObjectManipulator"/> 
+        /// <see cref="Microsoft.MixedReality.Toolkit.UI.ManipulationHandler"/> 
         /// when used in conjunction with this MonoBehavior.
         /// </summary>
         public void HighlightWires()
@@ -1184,7 +1176,7 @@ namespace Microsoft.MixedReality.Toolkit.UI
         /// <param name="min">Minimum scale</param>
         /// <param name="max">Maximum scale</param>
         /// <param name="relativeToInitialState">If true the values will be multiplied by scale of target at startup. If false they will be in absolute local scale.</param>
-        [Obsolete("Use a MinMaxScaleConstraint script rather than setting min/max scale on BoundingBox directly")]
+        [Obsolete("Use a TransformScaleHandler script rather than setting min/max scale on BoundingBox directly")]
         public void SetScaleLimits(float min, float max, bool relativeToInitialState = true)
         {
             scaleMinimum = min;
@@ -1236,7 +1228,7 @@ namespace Microsoft.MixedReality.Toolkit.UI
             }
             else if (activation == BoundingBoxActivationType.ActivateManually)
             {
-                // Activate to create handles etc. then deactivate. 
+                //activate to create handles etc. then deactivate. 
                 Active = true;
                 Active = false;
             }
@@ -1621,7 +1613,7 @@ namespace Microsoft.MixedReality.Toolkit.UI
                 midpointVisual.transform.parent = midpoint.transform;
                 midpointVisual.transform.localScale = new Vector3(invScale, invScale, invScale);
                 midpointVisual.transform.localPosition = Vector3.zero;
-
+                
                 Bounds bounds = new Bounds(midpointBounds.center * invScale, midpointBounds.size * invScale);
                 if (edgeAxes[i] == CardinalAxisType.X)
                 {
@@ -1633,6 +1625,7 @@ namespace Microsoft.MixedReality.Toolkit.UI
                 }
 
                 AddComponentsToAffordance(midpoint, bounds, rotationHandlePrefabColliderType, CursorContextInfo.CursorAction.Rotate, rotateHandleColliderPadding);
+
                 balls.Add(midpoint.transform);
 
                 handles.Add(new Handle()
@@ -1677,7 +1670,7 @@ namespace Microsoft.MixedReality.Toolkit.UI
                         link.transform.localScale = new Vector3(wireframeEdgeRadius, linkDimensions.z, wireframeEdgeRadius);
                         link.transform.Rotate(new Vector3(90.0f, 0.0f, 0.0f));
                     }
-                    else // edgeAxes[i] == CardinalAxisType.X
+                    else//X
                     {
                         link.transform.localScale = new Vector3(wireframeEdgeRadius, linkDimensions.x, wireframeEdgeRadius);
                         link.transform.Rotate(new Vector3(0.0f, 0.0f, 90.0f));
@@ -1766,8 +1759,8 @@ namespace Microsoft.MixedReality.Toolkit.UI
             }
             else
             {
-                TargetBounds = Target.AddComponent<BoxCollider>();
                 Bounds bounds = GetTargetBounds();
+                TargetBounds = Target.AddComponent<BoxCollider>();
 
                 TargetBounds.center = bounds.center;
                 TargetBounds.size = bounds.size;
@@ -1796,6 +1789,8 @@ namespace Microsoft.MixedReality.Toolkit.UI
 
         private Bounds GetTargetBounds()
         {
+            KeyValuePair<Transform, Collider> colliderByTransform;
+            KeyValuePair<Transform, Bounds> rendererBoundsByTransform;
             totalBoundsCorners.Clear();
 
             // Collect all Transforms except for the rigRoot(s) transform structure(s)
@@ -1804,10 +1799,7 @@ namespace Microsoft.MixedReality.Toolkit.UI
             // This can only happen by name unless there is a better idea of tracking the rigRoot that needs destruction
 
             List<Transform> childTransforms = new List<Transform>();
-            if (Target != gameObject)
-            {
-                childTransforms.Add(Target.transform);
-            }
+            childTransforms.Add(Target.transform);
 
             foreach (Transform childTransform in Target.transform)
             {
@@ -1821,19 +1813,56 @@ namespace Microsoft.MixedReality.Toolkit.UI
             {
                 Debug.Assert(childTransform != rigRoot);
 
-                ExtractBoundsCorners(childTransform, boundsCalculationMethod);
+                if (boundsCalculationMethod != BoundsCalculationMethod.RendererOnly)
+                {
+                    Collider collider = childTransform.GetComponent<Collider>();
+                    if (collider != null)
+                    {
+                        colliderByTransform = new KeyValuePair<Transform, Collider>(childTransform, collider);
+                    }
+                    else
+                    {
+                        colliderByTransform = new KeyValuePair<Transform, Collider>();
+                    }
+                }
+
+                if (boundsCalculationMethod != BoundsCalculationMethod.ColliderOnly)
+                {
+                    MeshFilter meshFilter = childTransform.GetComponent<MeshFilter>();
+                    if (meshFilter != null && meshFilter.sharedMesh != null)
+                    {
+                        rendererBoundsByTransform = new KeyValuePair<Transform, Bounds>(childTransform, meshFilter.sharedMesh.bounds);
+                    }
+                    else
+                    {
+                        rendererBoundsByTransform = new KeyValuePair<Transform, Bounds>();
+                    }
+                }
+
+                // Encapsulate the collider bounds if criteria match
+
+                if (boundsCalculationMethod == BoundsCalculationMethod.ColliderOnly ||
+                    boundsCalculationMethod == BoundsCalculationMethod.ColliderOverRenderer)
+                {
+                    AddColliderBoundsToTarget(colliderByTransform);
+                    if (boundsCalculationMethod == BoundsCalculationMethod.ColliderOnly) { continue; }
+                }
+
+                // Encapsulate the renderer bounds if criteria match
+
+                if (boundsCalculationMethod != BoundsCalculationMethod.ColliderOnly)
+                {
+                    AddRendererBoundsToTarget(rendererBoundsByTransform);
+                    if (boundsCalculationMethod == BoundsCalculationMethod.RendererOnly) { continue; }
+                }
+
+                // Do the collider for the one case that we chose RendererOverCollider and did not find a renderer
+                AddColliderBoundsToTarget(colliderByTransform);
             }
+
+            if (totalBoundsCorners.Count == 0) { return new Bounds(); }
 
             Transform targetTransform = Target.transform;
-
-            // In case we found nothing and this is the Target, we add it's inevitable collider's bounds
-
-            if (totalBoundsCorners.Count == 0 && Target == gameObject)
-            {
-                ExtractBoundsCorners(targetTransform, BoundsCalculationMethod.ColliderOnly);
-            }
-
-            // Gather all corners and calculate their bounds
 
             Bounds finalBounds = new Bounds(targetTransform.InverseTransformPoint(totalBoundsCorners[0]), Vector3.zero);
 
@@ -1845,81 +1874,26 @@ namespace Microsoft.MixedReality.Toolkit.UI
             return finalBounds;
         }
 
-        private void ExtractBoundsCorners(Transform childTransform, BoundsCalculationMethod boundsCalculationMethod)
+        private void AddRendererBoundsToTarget(KeyValuePair<Transform, Bounds> rendererBoundsByTarget)
         {
-            KeyValuePair<Transform, Collider> colliderByTransform;
-            KeyValuePair<Transform, Bounds> rendererBoundsByTransform;
-
-            if (boundsCalculationMethod != BoundsCalculationMethod.RendererOnly)
-            {
-                Collider collider = childTransform.GetComponent<Collider>();
-                if (collider != null)
-                {
-                    colliderByTransform = new KeyValuePair<Transform, Collider>(childTransform, collider);
-                }
-                else
-                {
-                    colliderByTransform = new KeyValuePair<Transform, Collider>();
-                }
-            }
-
-            if (boundsCalculationMethod != BoundsCalculationMethod.ColliderOnly)
-            {
-                MeshFilter meshFilter = childTransform.GetComponent<MeshFilter>();
-                if (meshFilter != null && meshFilter.sharedMesh != null)
-                {
-                    rendererBoundsByTransform = new KeyValuePair<Transform, Bounds>(childTransform, meshFilter.sharedMesh.bounds);
-                }
-                else
-                {
-                    rendererBoundsByTransform = new KeyValuePair<Transform, Bounds>();
-                }
-            }
-
-            // Encapsulate the collider bounds if criteria match
-
-            if (boundsCalculationMethod == BoundsCalculationMethod.ColliderOnly ||
-                boundsCalculationMethod == BoundsCalculationMethod.ColliderOverRenderer)
-            {
-                if (AddColliderBoundsCornersToTarget(colliderByTransform) && boundsCalculationMethod == BoundsCalculationMethod.ColliderOverRenderer ||
-                    boundsCalculationMethod == BoundsCalculationMethod.ColliderOnly) { return; }
-            }
-
-            // Encapsulate the renderer bounds if criteria match
-
-            if (boundsCalculationMethod != BoundsCalculationMethod.ColliderOnly)
-            {
-                if (AddRendererBoundsCornersToTarget(rendererBoundsByTransform) && boundsCalculationMethod == BoundsCalculationMethod.RendererOverCollider ||
-                    boundsCalculationMethod == BoundsCalculationMethod.RendererOnly) { return; }
-            }
-
-            // Do the collider for the one case that we chose RendererOverCollider and did not find a renderer
-            AddColliderBoundsCornersToTarget(colliderByTransform);
-        }
-
-        private bool AddRendererBoundsCornersToTarget(KeyValuePair<Transform, Bounds> rendererBoundsByTarget)
-        {
-            if (rendererBoundsByTarget.Key == null) { return false; }
+            if (rendererBoundsByTarget.Key == null) { return; }
 
             Vector3[] cornersToWorld = null;
             rendererBoundsByTarget.Value.GetCornerPositions(rendererBoundsByTarget.Key, ref cornersToWorld);
             totalBoundsCorners.AddRange(cornersToWorld);
-
-            return true;
         }
 
-        private bool AddColliderBoundsCornersToTarget(KeyValuePair<Transform, Collider> colliderByTransform)
+        private void AddColliderBoundsToTarget(KeyValuePair<Transform, Collider> colliderByTransform)
         {
-            if (colliderByTransform.Key == null) { return false; }
-
-            BoundsExtensions.GetColliderBoundsPoints(colliderByTransform.Value, totalBoundsCorners, 0);
-
-            return colliderByTransform.Key != null;
+            if (colliderByTransform.Key != null)
+            {
+                BoundsExtensions.GetColliderBoundsPoints(colliderByTransform.Value, totalBoundsCorners, 0);
+            }
         }
 
         private void SetMaterials()
         {
-            // Ensure materials
+            //ensure materials
             if (wireframeMaterial == null)
             {
                 float[] color = { 1.0f, 1.0f, 1.0f, 0.75f };
@@ -2047,7 +2021,7 @@ namespace Microsoft.MixedReality.Toolkit.UI
 
             bool isVisible;
 
-            // Set balls visibility
+            //set balls visibility
             if (balls != null)
             {
                 isVisible = (active == true && wireframeOnly == false);
@@ -2058,7 +2032,7 @@ namespace Microsoft.MixedReality.Toolkit.UI
                 }
             }
 
-            // Set link visibility
+            //set link visibility
             if (links != null)
             {
                 isVisible = active == true;
@@ -2071,14 +2045,14 @@ namespace Microsoft.MixedReality.Toolkit.UI
                 }
             }
 
-            // Set box display visibility
+            //set box display visibility
             if (boxDisplay != null)
             {
                 boxDisplay.SetActive(active);
                 ApplyMaterialToAllRenderers(boxDisplay, boxMaterial);
             }
 
-            // Set corner visibility
+            //set corner visibility
             if (corners != null)
             {
                 isVisible = (active == true && wireframeOnly == false && showScaleHandles == true);
@@ -2095,7 +2069,7 @@ namespace Microsoft.MixedReality.Toolkit.UI
 
         private void SetHighlighted(Transform activeHandle)
         {
-            // Turn off all balls
+            //turn off all balls
             if (balls != null)
             {
                 for (int i = 0; i < balls.Count; ++i)
@@ -2111,7 +2085,7 @@ namespace Microsoft.MixedReality.Toolkit.UI
                 }
             }
 
-            // Turn off all corners
+            //turn off all corners
             if (corners != null)
             {
                 for (int i = 0; i < corners.Count; ++i)
@@ -2127,7 +2101,7 @@ namespace Microsoft.MixedReality.Toolkit.UI
                 }
             }
 
-            // Update the box material to the grabbed material
+            //update the box material to the grabbed material
             if (boxDisplay != null)
             {
                 ApplyMaterialToAllRenderers(boxDisplay, boxGrabbedMaterial);
@@ -2209,7 +2183,7 @@ namespace Microsoft.MixedReality.Toolkit.UI
                         {
                             links[i].localScale = new Vector3(wireframeEdgeRadius, linkDimensions.y, wireframeEdgeRadius);
                         }
-                        else // edgeAxes[i] == CardinalAxisType.Z
+                        else//Z
                         {
                             links[i].localScale = new Vector3(wireframeEdgeRadius, linkDimensions.z, wireframeEdgeRadius);
                         }
@@ -2231,7 +2205,7 @@ namespace Microsoft.MixedReality.Toolkit.UI
 
         private void HandleProximityScaling()
         {
-            // Only use proximity effect if nothing is being dragged or grabbed
+            //only use proximity effect if nothing is being dragged or grabbed
             if (currentPointer == null)
             {
                 proximityPointers.Clear();
@@ -2248,9 +2222,11 @@ namespace Microsoft.MixedReality.Toolkit.UI
                         }
                     }
                 }
-                
-                // Get the max radius possible of our current bounds and extent the range to include proximity scaled objects. This is done by adjusting the original bounds to include the ObjectMediumProximity range in x, y and z axis
-                float maxRadius = currentBoundsExtents.sqrMagnitude + (3 * handleMediumProximity * handleMediumProximity);
+
+                // Get the max radius possible of our current bounds plus the proximity
+                float maxRadius = Mathf.Max(Mathf.Max(currentBoundsExtents.x, currentBoundsExtents.y), currentBoundsExtents.z);
+                maxRadius *= maxRadius;
+                maxRadius += handleCloseProximity + handleMediumProximity;
 
                 // Grab points within sphere of influence from valid pointers
                 foreach (var pointer in proximityPointers)
@@ -2261,6 +2237,7 @@ namespace Microsoft.MixedReality.Toolkit.UI
                     }
 
                     Vector3? point = pointer.Result?.Details.Point;
+
                     if (point.HasValue && IsPointWithinBounds(point.Value, maxRadius))
                     {
                         proximityPoints.Add(pointer.Result.Details.Point);
@@ -2368,7 +2345,7 @@ namespace Microsoft.MixedReality.Toolkit.UI
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private bool IsPointWithinBounds(Vector3 point, float radiusSqr)
         {
-            return (Vector3.Scale(TargetBounds.center, TargetBounds.gameObject.transform.lossyScale) + transform.position - point).sqrMagnitude < radiusSqr;
+            return (transform.position - point).sqrMagnitude < radiusSqr;
         }
 
         /// <summary>

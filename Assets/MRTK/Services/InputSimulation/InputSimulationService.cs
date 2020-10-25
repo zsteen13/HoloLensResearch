@@ -63,8 +63,6 @@ namespace Microsoft.MixedReality.Toolkit.Input
         public SimulatedHandData HandDataLeft { get; } = new SimulatedHandData();
         /// <inheritdoc />
         public SimulatedHandData HandDataRight { get; } = new SimulatedHandData();
-        /// <inheritdoc />
-        private SimulatedHandData HandDataGaze { get; } = new SimulatedHandData();
 
         /// <inheritdoc />
         public bool IsSimulatingHandLeft => (handDataProvider != null ? handDataProvider.IsSimulatingLeft : false);
@@ -130,11 +128,6 @@ namespace Microsoft.MixedReality.Toolkit.Input
                 handDataProvider.ResetHand(Handedness.Right);
             }
         }
-
-        /// <summary>
-        /// If true then camera forward direction is used to simulate eye tracking data.    
-        /// </summary>
-        public bool SimulateEyePosition { get; set; }
 
         /// <summary>
         /// If true then keyboard and mouse input are used to simulate hands.
@@ -207,7 +200,7 @@ namespace Microsoft.MixedReality.Toolkit.Input
                     return (HandSimulationMode != HandSimulationMode.Disabled);
 
                 case MixedRealityCapability.EyeTracking:
-                    return SimulateEyePosition;
+                    return InputSimulationProfile.SimulateEyePosition;
             }
 
             return false;
@@ -218,14 +211,17 @@ namespace Microsoft.MixedReality.Toolkit.Input
         {
             base.Initialize();
 
+            ArticulatedHandPose.LoadGesturePoses();
+
             HandSimulationMode = InputSimulationProfile.DefaultHandSimulationMode;
-            SimulateEyePosition = InputSimulationProfile.SimulateEyePosition;
         }
 
         /// <inheritdoc />
         public override void Destroy()
         {
             base.Destroy();
+
+            ArticulatedHandPose.ResetGesturePoses();
         }
 
         /// <inheritdoc />
@@ -297,7 +293,7 @@ namespace Microsoft.MixedReality.Toolkit.Input
             {
                 if (handDataProvider != null)
                 {
-                    handDataProvider.UpdateHandData(HandDataLeft, HandDataRight, HandDataGaze, mouseDelta);
+                    handDataProvider.UpdateHandData(HandDataLeft, HandDataRight, mouseDelta);
                 }
 
                 if (cameraControl != null && CameraCache.Main)
@@ -306,7 +302,7 @@ namespace Microsoft.MixedReality.Toolkit.Input
                 }
             }
 
-            if (SimulateEyePosition)
+            if (profile.SimulateEyePosition)
             {
                 // In the simulated eye gaze condition, let's set the eye tracking calibration status automatically to true
                 Service?.EyeGazeProvider?.UpdateEyeTrackingStatus(this, true);
@@ -339,9 +335,6 @@ namespace Microsoft.MixedReality.Toolkit.Input
                     UpdateHandDevice(HandSimulationMode, Handedness.Left, HandDataLeft);
                     UpdateHandDevice(HandSimulationMode, Handedness.Right, HandDataRight);
 
-                    // HandDataGaze is only enabled if the user is simulating via mouse and keyboard
-                    if (UserInputEnabled && profile.IsHandsFreeInputEnabled)
-                        UpdateHandDevice(HandSimulationMode.Gestures, Handedness.None, HandDataGaze);
                     lastHandUpdateTimestamp = currentTime.Ticks;
                 }
             }

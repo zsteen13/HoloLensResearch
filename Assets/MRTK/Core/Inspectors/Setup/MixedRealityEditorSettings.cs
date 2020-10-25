@@ -2,11 +2,8 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using Microsoft.MixedReality.Toolkit.Editor;
-using System.Linq;
-using System.Text;
 using UnityEditor;
 using UnityEditor.Build;
-using UnityEditor.Build.Reporting;
 using UnityEngine;
 
 namespace Microsoft.MixedReality.Toolkit.Utilities.Editor
@@ -15,16 +12,10 @@ namespace Microsoft.MixedReality.Toolkit.Utilities.Editor
     /// Editor runtime controller for showing Project Configuration window and performance checks logging in current Unity project
     /// </summary>
     [InitializeOnLoad]
-    public class MixedRealityEditorSettings : IActiveBuildTargetChanged, IPreprocessBuildWithReport
+    public class MixedRealityEditorSettings : IActiveBuildTargetChanged
     {
         private const string SessionKey = "_MixedRealityToolkit_Editor_ShownSettingsPrompts";
-        private static readonly string[] UwpRecommendedAudioSpatializers = { "MS HRTF Spatializer", "Microsoft Spatializer" };
-
-#if UNITY_ANDROID
-        const string RenderingMode = "Single Pass Stereo";
-#else
-        const string RenderingMode = "Single Pass Instanced";
-#endif
+        private const string MSFT_AudioSpatializerPlugin = "MS HRTF Spatializer";
 
         public MixedRealityEditorSettings()
         {
@@ -66,15 +57,6 @@ namespace Microsoft.MixedReality.Toolkit.Utilities.Editor
             set => SessionState.SetBool(SessionKey, value);
         }
 
-        /// <inheritdoc />
-        public void OnPreprocessBuild(BuildReport report)
-        {
-            if (MixedRealityProjectPreferences.RunOptimalConfiguration)
-            {
-                LogBuildConfigurationWarnings();
-            }
-        }
-
         private static void OnPlayStateModeChanged(PlayModeStateChange state)
         {
             if (state == PlayModeStateChange.EnteredPlayMode && MixedRealityProjectPreferences.RunOptimalConfiguration)
@@ -106,9 +88,9 @@ namespace Microsoft.MixedReality.Toolkit.Utilities.Editor
                 Debug.LogWarning("<b>Virtual reality supported</b> not enabled. Check <i>XR Settings</i> under <i>Player Settings</i>");
             }
 
-            if (!MixedRealityOptimizeUtils.IsOptimalRenderingPath())
+            if (!MixedRealityOptimizeUtils.IsSinglePassInstanced())
             {
-                Debug.LogWarning($"XR stereo rendering mode not set to <b>{RenderingMode}</b>. See <i>Mixed Reality Toolkit</i> > <i>Utilities</i> > <i>Optimize Window</i> tool for more information to improve performance");
+                Debug.LogWarning("XR stereo rendering mode not set to <b>Single Pass Instanced</b>. See <i>Mixed Reality Toolkit</i> > <i>Utilities</i> > <i>Optimize Window</i> tool for more information to improve performance");
             }
 
             // If targeting Windows Mixed Reality platform
@@ -126,26 +108,11 @@ namespace Microsoft.MixedReality.Toolkit.Utilities.Editor
                     Debug.LogWarning("<b>Depth Buffer Sharing</b> has 24-bit depth format selected. Consider using 16-bit for performance. See <i>Mixed Reality Toolkit</i> > <i>Utilities</i> > <i>Optimize Window</i> tool for more information to improve performance");
                 }
 
-                if (!UwpRecommendedAudioSpatializers.Contains(SpatializerUtilities.CurrentSpatializer))
+                if (!AudioSettings.GetSpatializerPluginName().Equals(MSFT_AudioSpatializerPlugin))
                 {
-                    Debug.LogWarning($"This application is not using the recommended <b>Audio Spatializer Plugin</b>. Go to <i>Project Settings</i> > <i>Audio</i> > <i>Spatializer Plugin</i> and select one of the following: {string.Join(", ", UwpRecommendedAudioSpatializers)}.");
+                    // If using UWP, developers should use the Microsoft Audio Spatializer plugin
+                    Debug.LogWarning("<b>Audio Spatializer Plugin</b> not currently set to <i>" + MSFT_AudioSpatializerPlugin + "</i>. Switch to <i>" + MSFT_AudioSpatializerPlugin + "</i> under <i>Project Settings</i> > <i>Audio</i> > <i>Spatializer Plugin</i>");
                 }
-            }
-            else if (SpatializerUtilities.CurrentSpatializer == null)
-            {
-                Debug.LogWarning($"This application is not using an <b>Audio Spatializer Plugin</b>. Go to <i>Project Settings</i> > <i>Audio</i> > <i>Spatializer Plugin</i> and select one of the available options.");
-            }
-        }
-
-        /// <summary>
-        /// Checks critical project settings and suggests changes to optimize build performance via logged warnings
-        /// </summary>
-        private static void LogBuildConfigurationWarnings()
-        {
-            if (PlayerSettings.stripUnusedMeshComponents)
-            {
-                /// For more information please see <see href="https://microsoft.github.io/MixedRealityToolkit-Unity/Documentation/Performance/PerfGettingStarted.html#optimize-mesh-data">Optimize Mesh Data</see>
-                Debug.LogWarning("<b>Optimize Mesh Data</b> is enabled. This setting can drastically increase build times. It is recommended to disable this setting during development and re-enable during \"Master\" build creation. See <i>Player Settings</i> > <i>Other Settings</i> > <i>Optimize Mesh Data</i>");
             }
         }
     }

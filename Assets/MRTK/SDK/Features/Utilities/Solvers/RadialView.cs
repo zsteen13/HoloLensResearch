@@ -23,8 +23,8 @@ namespace Microsoft.MixedReality.Toolkit.Utilities.Solvers
         /// </summary>
         public RadialViewReferenceDirection ReferenceDirection
         {
-            get => referenceDirection;
-            set => referenceDirection = value;
+            get { return referenceDirection; }
+            set { referenceDirection = value; }
         }
 
         [SerializeField]
@@ -36,8 +36,8 @@ namespace Microsoft.MixedReality.Toolkit.Utilities.Solvers
         /// </summary>
         public float MinDistance
         {
-            get => minDistance;
-            set => minDistance = value;
+            get { return minDistance; }
+            set { minDistance = value; }
         }
 
         [SerializeField]
@@ -49,8 +49,8 @@ namespace Microsoft.MixedReality.Toolkit.Utilities.Solvers
         /// </summary>
         public float MaxDistance
         {
-            get => maxDistance;
-            set => maxDistance = value;
+            get { return maxDistance; }
+            set { maxDistance = value; }
         }
 
         [SerializeField]
@@ -62,8 +62,8 @@ namespace Microsoft.MixedReality.Toolkit.Utilities.Solvers
         /// </summary>
         public float MinViewDegrees
         {
-            get => minViewDegrees;
-            set => minViewDegrees = value;
+            get { return minViewDegrees; }
+            set { minViewDegrees = value; }
         }
 
         [SerializeField]
@@ -75,8 +75,8 @@ namespace Microsoft.MixedReality.Toolkit.Utilities.Solvers
         /// </summary>
         public float MaxViewDegrees
         {
-            get => maxViewDegrees;
-            set => maxViewDegrees = value;
+            get { return maxViewDegrees; }
+            set { maxViewDegrees = value; }
         }
 
         [SerializeField]
@@ -88,8 +88,8 @@ namespace Microsoft.MixedReality.Toolkit.Utilities.Solvers
         /// </summary>
         public float AspectV
         {
-            get => aspectV;
-            set => aspectV = value;
+            get { return aspectV; }
+            set { aspectV = value; }
         }
 
         [SerializeField]
@@ -101,8 +101,8 @@ namespace Microsoft.MixedReality.Toolkit.Utilities.Solvers
         /// </summary>
         public bool IgnoreAngleClamp
         {
-            get => ignoreAngleClamp;
-            set => ignoreAngleClamp = value;
+            get { return ignoreAngleClamp; }
+            set { ignoreAngleClamp = value; }
         }
 
         [SerializeField]
@@ -114,8 +114,8 @@ namespace Microsoft.MixedReality.Toolkit.Utilities.Solvers
         /// </summary>
         public bool IgnoreDistanceClamp
         {
-            get => ignoreDistanceClamp;
-            set => ignoreDistanceClamp = value;
+            get { return ignoreDistanceClamp; }
+            set { ignoreDistanceClamp = value; }
         }
 
         [SerializeField]
@@ -127,8 +127,8 @@ namespace Microsoft.MixedReality.Toolkit.Utilities.Solvers
         /// </summary>
         public bool UseFixedVerticalPosition
         {
-            get => useFixedVerticalPosition;
-            set => useFixedVerticalPosition = value;
+            get { return useFixedVerticalPosition; }
+            set { useFixedVerticalPosition = value; }
         }
 
         [SerializeField]
@@ -140,8 +140,8 @@ namespace Microsoft.MixedReality.Toolkit.Utilities.Solvers
         /// </summary>
         public float FixedVerticalPosition
         {
-            get => fixedVerticalPosition;
-            set => fixedVerticalPosition = value;
+            get { return fixedVerticalPosition; }
+            set { fixedVerticalPosition = value; }
         }
 
         [SerializeField]
@@ -153,8 +153,8 @@ namespace Microsoft.MixedReality.Toolkit.Utilities.Solvers
         /// </summary>
         public bool OrientToReferenceDirection
         {
-            get => orientToReferenceDirection;
-            set => orientToReferenceDirection = value;
+            get { return orientToReferenceDirection; }
+            set { orientToReferenceDirection = value; }
         }
 
         /// <summary>

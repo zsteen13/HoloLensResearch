@@ -3,9 +3,8 @@
 
 using Microsoft.MixedReality.Toolkit.Input;
 using Microsoft.MixedReality.Toolkit.Utilities;
-using System;
-using Unity.Profiling;
 using UnityEngine;
+using System;
 
 #if UNITY_STANDALONE_WIN || UNITY_WSA || UNITY_EDITOR_WIN
 using UnityEngine.Windows.Speech;
@@ -47,6 +46,7 @@ namespace Microsoft.MixedReality.Toolkit.Windows.Input
         /// <param name="name">Friendly name of the service.</param>
         /// <param name="priority">Service priority. Used to determine order of instantiation.</param>
         /// <param name="profile">The service's configuration profile.</param>
+        [Obsolete("This constructor is obsolete (registrar parameter is no longer required) and will be removed in a future version of the Microsoft Mixed Reality Toolkit.")]
         public WindowsSpeechInputProvider(
             IMixedRealityInputSystem inputSystem,
             string name = null,
@@ -175,21 +175,16 @@ namespace Microsoft.MixedReality.Toolkit.Windows.Input
             keywordRecognizer.OnPhraseRecognized += KeywordRecognizer_OnPhraseRecognized;
         }
 
-        private static readonly ProfilerMarker UpdatePerfMarker = new ProfilerMarker("[MRTK] WindowsSpeechInputProvider.Update");
-
         /// <inheritdoc />
         public override void Update()
         {
-            using (UpdatePerfMarker.Auto())
+            if (keywordRecognizer != null && keywordRecognizer.IsRunning)
             {
-                if (keywordRecognizer != null && keywordRecognizer.IsRunning)
+                for (int i = 0; i < Commands.Length; i++)
                 {
-                    for (int i = 0; i < Commands.Length; i++)
+                    if (UInput.GetKeyDown(Commands[i].KeyCode))
                     {
-                        if (UInput.GetKeyDown(Commands[i].KeyCode))
-                        {
-                            OnPhraseRecognized((ConfidenceLevel)RecognitionConfidenceLevel, TimeSpan.Zero, DateTime.UtcNow, Commands[i].LocalizedKeyword);
-                        }
+                        OnPhraseRecognized((ConfidenceLevel)RecognitionConfidenceLevel, TimeSpan.Zero, DateTime.UtcNow, Commands[i].LocalizedKeyword);
                     }
                 }
             }
@@ -223,21 +218,16 @@ namespace Microsoft.MixedReality.Toolkit.Windows.Input
             OnPhraseRecognized(args.confidence, args.phraseDuration, args.phraseStartTime, args.text);
         }
 
-        private static readonly ProfilerMarker OnPhraseRecognizedPerfMarker = new ProfilerMarker("[MRTK] WindowsSpeechInputProvider.OnPhraseRecognized");
-
         private void OnPhraseRecognized(ConfidenceLevel confidence, TimeSpan phraseDuration, DateTime phraseStartTime, string text)
         {
-            using (OnPhraseRecognizedPerfMarker.Auto())
-            {
-                IMixedRealityInputSystem inputSystem = Service as IMixedRealityInputSystem;
+            IMixedRealityInputSystem inputSystem = Service as IMixedRealityInputSystem;
 
-                for (int i = 0; i < Commands?.Length; i++)
+            for (int i = 0; i < Commands?.Length; i++)
+            {
+                if (Commands[i].LocalizedKeyword == text)
                 {
-                    if (Commands[i].LocalizedKeyword == text)
-                    {
-                        inputSystem?.RaiseSpeechCommandRecognized(InputSource, (RecognitionConfidenceLevel)confidence, phraseDuration, phraseStartTime, Commands[i]);
-                        break;
-                    }
+                    inputSystem?.RaiseSpeechCommandRecognized(InputSource, (RecognitionConfidenceLevel)confidence, phraseDuration, phraseStartTime, Commands[i]);
+                    break;
                 }
             }
         }

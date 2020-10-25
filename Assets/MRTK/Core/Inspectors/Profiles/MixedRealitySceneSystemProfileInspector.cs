@@ -186,6 +186,8 @@ namespace Microsoft.MixedReality.Toolkit.Editor
                         }
 
                         EditorGUILayout.PropertyField(lightingScenes, includeChildren: true);
+                        //DrawSceneInfoDragAndDrop(lightingScenes);
+
                         EditorGUILayout.Space();
 
                         if (profile.NumLightingScenes > 0)
@@ -213,6 +215,7 @@ namespace Microsoft.MixedReality.Toolkit.Editor
                     // Enable the tag field since we're drawing content scenes
                     SceneInfoDrawer.DrawTagProperty = true;
                     EditorGUILayout.PropertyField(contentScenes, includeChildren: true);
+                    //DrawSceneInfoDragAndDrop(contentScenes);
                 }
             }, ShowSceneSystem_Content_PreferenceKey);
 

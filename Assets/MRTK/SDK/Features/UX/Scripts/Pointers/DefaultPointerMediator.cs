@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using Unity.Profiling;
 
 namespace Microsoft.MixedReality.Toolkit.Input
 {
@@ -33,214 +32,189 @@ namespace Microsoft.MixedReality.Toolkit.Input
             pointerPreferences = pointerPrefs;
         }
 
-        private static readonly ProfilerMarker RegisterPointersPerfMarker = new ProfilerMarker("[MRTK] DefaultPointerMediator.RegisterPointers");
-
         public virtual void RegisterPointers(IMixedRealityPointer[] pointers)
         {
-            using (RegisterPointersPerfMarker.Auto())
+            for (int i = 0; i < pointers.Length; i++)
             {
-                for (int i = 0; i < pointers.Length; i++)
+                IMixedRealityPointer pointer = pointers[i];
+
+                allPointers.Add(pointer);
+
+                pointer.IsActive = true;
+
+                if (pointer is IMixedRealityTeleportPointer)
                 {
-                    IMixedRealityPointer pointer = pointers[i];
+                    teleportPointers.Add(pointer as IMixedRealityTeleportPointer);
+                }
+                else if (pointer is IMixedRealityNearPointer)
+                {
+                    nearInteractPointers.Add(pointer as IMixedRealityNearPointer);
+                }
+                else
+                {
+                    farInteractPointers.Add(pointer);
+                }
 
-                    allPointers.Add(pointer);
-
-                    pointer.IsActive = true;
-
-                    if (pointer is IMixedRealityTeleportPointer)
+                if (pointer.InputSourceParent != null)
+                {
+                    HashSet<IMixedRealityPointer> children;
+                    if (!pointerByInputSourceParent.TryGetValue(pointer.InputSourceParent, out children))
                     {
-                        teleportPointers.Add(pointer as IMixedRealityTeleportPointer);
+                        children = new HashSet<IMixedRealityPointer>();
+                        pointerByInputSourceParent.Add(pointer.InputSourceParent, children);
                     }
-                    else if (pointer is IMixedRealityNearPointer)
-                    {
-                        nearInteractPointers.Add(pointer as IMixedRealityNearPointer);
-                    }
-                    else
-                    {
-                        farInteractPointers.Add(pointer);
-                    }
-
-                    if (pointer.InputSourceParent != null)
-                    {
-                        HashSet<IMixedRealityPointer> children;
-                        if (!pointerByInputSourceParent.TryGetValue(pointer.InputSourceParent, out children))
-                        {
-                            children = new HashSet<IMixedRealityPointer>();
-                            pointerByInputSourceParent.Add(pointer.InputSourceParent, children);
-                        }
-                        children.Add(pointer);
-                    }
+                    children.Add(pointer);
                 }
             }
         }
-
-        private static readonly ProfilerMarker UnregisterPointersPerfMarker = new ProfilerMarker("[MRTK] DefaultPointerMediator.UnregisterPointers");
 
         public virtual void UnregisterPointers(IMixedRealityPointer[] pointers)
         {
-            using (UnregisterPointersPerfMarker.Auto())
+            for (int i = 0; i < pointers.Length; i++)
             {
-                for (int i = 0; i < pointers.Length; i++)
+                IMixedRealityPointer pointer = pointers[i];
+
+                allPointers.Remove(pointer);
+                farInteractPointers.Remove(pointer);
+                nearInteractPointers.Remove(pointer as IMixedRealityNearPointer);
+                teleportPointers.Remove(pointer as IMixedRealityTeleportPointer);
+
+                foreach (HashSet<IMixedRealityPointer> siblingPointers in pointerByInputSourceParent.Values)
                 {
-                    IMixedRealityPointer pointer = pointers[i];
-
-                    allPointers.Remove(pointer);
-                    farInteractPointers.Remove(pointer);
-                    nearInteractPointers.Remove(pointer as IMixedRealityNearPointer);
-                    teleportPointers.Remove(pointer as IMixedRealityTeleportPointer);
-
-                    foreach (HashSet<IMixedRealityPointer> siblingPointers in pointerByInputSourceParent.Values)
-                    {
-                        siblingPointers.Remove(pointer);
-                    }
+                    siblingPointers.Remove(pointer);
                 }
             }
         }
 
-        private static readonly ProfilerMarker UpdatePointersPerfMarker = new ProfilerMarker("[MRTK] DefaultPointerMediator.UpdatePointers");
-
         public virtual void UpdatePointers()
         {
-            using (UpdatePointersPerfMarker.Auto())
+            // If there's any teleportation going on, disable all pointers except the teleporter
+            foreach (IMixedRealityTeleportPointer pointer in teleportPointers)
             {
-                // If there's any teleportation going on, disable all pointers except the teleporter
-                foreach (IMixedRealityTeleportPointer pointer in teleportPointers)
+                if (pointer.TeleportRequestRaised)
                 {
-                    if (pointer.TeleportRequestRaised)
-                    {
-                        pointer.IsActive = true;
+                    pointer.IsActive = true;
 
-                        foreach (IMixedRealityPointer otherPointer in allPointers)
+                    foreach (IMixedRealityPointer otherPointer in allPointers)
+                    {
+                        if (otherPointer.PointerId == pointer.PointerId)
                         {
-                            if (otherPointer.PointerId == pointer.PointerId)
+                            continue;
+                        }
+
+                        otherPointer.IsActive = false;
+                    }
+                    // Don't do any further checks
+                    return;
+                }
+            }
+
+            // pointers whose active state has not yet been set this frame
+            unassignedPointers.Clear();
+            foreach (IMixedRealityPointer unassignedPointer in allPointers)
+            {
+                unassignedPointers.Add(unassignedPointer);
+            }
+
+            ApplyCustomPointerBehaviors();
+
+            // If any pointers are locked, they have priority. 
+            // Deactivate all other pointers that are on that input source
+            foreach (IMixedRealityPointer pointer in allPointers)
+            {
+                if (pointer.IsFocusLocked)
+                {
+                    pointer.IsActive = true;
+                    unassignedPointers.Remove(pointer);
+
+                    if (pointer.InputSourceParent != null)
+                    {
+                        foreach (IMixedRealityPointer otherPointer in pointerByInputSourceParent[pointer.InputSourceParent])
+                        {
+                            if (!unassignedPointers.Contains(otherPointer))
                             {
                                 continue;
                             }
 
                             otherPointer.IsActive = false;
-                        }
-                        // Don't do any further checks
-                        return;
-                    }
-                }
-
-                // pointers whose active state has not yet been set this frame
-                unassignedPointers.Clear();
-                foreach (IMixedRealityPointer unassignedPointer in allPointers)
-                {
-                    unassignedPointers.Add(unassignedPointer);
-                }
-
-                ApplyCustomPointerBehaviors();
-
-                // If any pointers are locked, they have priority. 
-                // Deactivate all other pointers that are on that input source
-                foreach (IMixedRealityPointer pointer in allPointers)
-                {
-                    if (pointer.IsFocusLocked)
-                    {
-                        pointer.IsActive = true;
-                        unassignedPointers.Remove(pointer);
-
-                        if (pointer.InputSourceParent != null)
-                        {
-                            foreach (IMixedRealityPointer otherPointer in pointerByInputSourceParent[pointer.InputSourceParent])
-                            {
-                                if (!unassignedPointers.Contains(otherPointer))
-                                {
-                                    continue;
-                                }
-
-                                otherPointer.IsActive = false;
-                                unassignedPointers.Remove(otherPointer);
-                            }
+                            unassignedPointers.Remove(otherPointer);
                         }
                     }
-                }
-
-                // Check for near and far interactions
-                // Any far interact pointers become disabled when a near pointer is near an object
-                foreach (IMixedRealityNearPointer pointer in nearInteractPointers)
-                {
-                    if (!unassignedPointers.Contains(pointer))
-                    {
-                        continue;
-                    }
-
-                    if (pointer.IsNearObject)
-                    {
-                        pointer.IsActive = true;
-                        unassignedPointers.Remove(pointer);
-
-                        if (pointer.InputSourceParent != null)
-                        {
-                            foreach (IMixedRealityPointer otherPointer in pointerByInputSourceParent[pointer.InputSourceParent])
-                            {
-                                if (!unassignedPointers.Contains(otherPointer))
-                                {
-                                    continue;
-                                }
-
-                                if (otherPointer is IMixedRealityNearPointer)
-                                {
-                                    // Only disable far interaction pointers
-                                    // It is okay for example to have two near pointers active on a single controller
-                                    // like a poke pointer and a grab pointer
-                                    continue;
-                                }
-
-                                otherPointer.IsActive = false;
-                                unassignedPointers.Remove(otherPointer);
-                            }
-                        }
-                    }
-                }
-
-                // All other pointers that have not been assigned this frame
-                // have no reason to be disabled, so make sure they are active
-                foreach (IMixedRealityPointer unassignedPointer in unassignedPointers)
-                {
-                    unassignedPointer.IsActive = true;
                 }
             }
-        }
 
-        private static readonly ProfilerMarker ApplyCustomPointerBehaviorsPerfMarker = new ProfilerMarker("[MRTK] DefaultPointerMediator.ApplyCustomPointerBehaviors");
+            // Check for near and far interactions
+            // Any far interact pointers become disabled when a near pointer is near an object
+            foreach (IMixedRealityNearPointer pointer in nearInteractPointers)
+            {
+                if (!unassignedPointers.Contains(pointer))
+                {
+                    continue;
+                }
+
+                if (pointer.IsNearObject)
+                {
+                    pointer.IsActive = true;
+                    unassignedPointers.Remove(pointer);
+
+                    if (pointer.InputSourceParent != null)
+                    {
+                        foreach (IMixedRealityPointer otherPointer in pointerByInputSourceParent[pointer.InputSourceParent])
+                        {
+                            if (!unassignedPointers.Contains(otherPointer))
+                            {
+                                continue;
+                            }
+
+                            if (otherPointer is IMixedRealityNearPointer)
+                            {
+                                // Only disable far interaction pointers
+                                // It is okay for example to have two near pointers active on a single controller
+                                // like a poke pointer and a grab pointer
+                                continue;
+                            }
+
+                            otherPointer.IsActive = false;
+                            unassignedPointers.Remove(otherPointer);
+                        }
+                    }
+                }
+            }
+
+            // All other pointers that have not been assigned this frame
+            // have no reason to be disabled, so make sure they are active
+            foreach (IMixedRealityPointer unassignedPointer in unassignedPointers)
+            {
+                unassignedPointer.IsActive = true;
+            }
+        }
 
         private void ApplyCustomPointerBehaviors()
         {
-            using (ApplyCustomPointerBehaviorsPerfMarker.Auto())
+            if (pointerPreferences != null)
             {
-                if (pointerPreferences != null)
+                foreach (IMixedRealityPointer pointer in allPointers)
                 {
-                    foreach (IMixedRealityPointer pointer in allPointers)
-                    {
-                        ApplyPointerBehavior(pointer, pointerPreferences.GetPointerBehavior(pointer));
-                    }
+                    ApplyPointerBehavior(pointer, pointerPreferences.GetPointerBehavior(pointer));
                 }
             }
         }
 
-        private static readonly ProfilerMarker ApplyPointerBehaviorPerfMarker = new ProfilerMarker("[MRTK] DefaultPointerMediator.ApplyPointerBehavior");
-
         private void ApplyPointerBehavior(IMixedRealityPointer pointer, PointerBehavior behavior)
         {
-            using (ApplyPointerBehaviorPerfMarker.Auto())
+            if (behavior == PointerBehavior.Default)
             {
-                if (behavior == PointerBehavior.Default)
-                {
-                    return;
-                }
-
-                bool isPointerOn = behavior == PointerBehavior.AlwaysOn;
-                pointer.IsActive = isPointerOn;
-                if (pointer is GenericPointer genericPtr)
-                {
-                    genericPtr.IsInteractionEnabled = isPointerOn;
-                }
-
-                unassignedPointers.Remove(pointer);
+                return;
             }
+
+            bool isPointerOn = behavior == PointerBehavior.AlwaysOn;
+            pointer.IsActive = isPointerOn;
+            if (pointer is GenericPointer genericPtr)
+            {
+                genericPtr.IsInteractionEnabled = isPointerOn;
+            }
+
+            unassignedPointers.Remove(pointer);
         }
     }
 }

@@ -52,13 +52,7 @@ namespace Microsoft.MixedReality.Toolkit.UI
         /// <inheritdoc />
         public override void SetValue(ThemeStateProperty property, int index, float percentage)
         {
-            SetValue(property, property.Values[index]);
-        }
-
-        /// <inheritdoc />
-        protected override void SetValue(ThemeStateProperty property, ThemePropertyValue value)
-        {
-            Host.SetActive(value.Bool);
+            Host.SetActive(property.Values[index].Bool);
         }
     }
 }

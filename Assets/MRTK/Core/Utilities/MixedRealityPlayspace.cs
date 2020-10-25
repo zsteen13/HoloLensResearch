@@ -200,10 +200,7 @@ namespace Microsoft.MixedReality.Toolkit
             }
             else
             {
-                if (scene.isLoaded)
-                {
-                    SearchForAndDisableExtraPlayspaces(scene.GetRootGameObjects());
-                }
+                SearchForAndDisableExtraPlayspaces(scene.GetRootGameObjects());
             }
         }
 #endif

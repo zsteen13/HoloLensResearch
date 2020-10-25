@@ -20,7 +20,7 @@ namespace Microsoft.MixedReality.Toolkit.SpatialAwareness
         [PhysicsLayer]
         [SerializeField]
         [Tooltip("Physics layer on which to set observed meshes.")]
-        private int meshPhysicsLayer = BaseSpatialObserver.DefaultSpatialAwarenessLayer;
+        private int meshPhysicsLayer = 31;
 
         /// <summary>
         /// The Unity Physics Layer on which to set observed meshes.

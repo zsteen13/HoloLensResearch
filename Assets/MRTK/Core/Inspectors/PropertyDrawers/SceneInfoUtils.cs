@@ -158,12 +158,10 @@ namespace Microsoft.MixedReality.Toolkit.Editor
                     changed = true;
                 }
 
-                
-                // The method is using scenes by path is not reliable (code included
-                // commented out here for reference).
-                // Cached scenes are used instead (see CachedScenes).
-                // Scene scene = EditorSceneManager.GetSceneByPath(scenePath);
-                // int buildIndex = scene.buildIndex;
+                // This method is no longer reliable
+                // so we're using out cached scenes instead
+                //Scene scene = EditorSceneManager.GetSceneByPath(scenePath);
+                //int buildIndex = scene.buildIndex;
 
                 int buildIndex = -1;
                 int sceneCount = 0;

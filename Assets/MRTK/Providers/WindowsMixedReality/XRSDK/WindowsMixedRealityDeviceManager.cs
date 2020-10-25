@@ -13,14 +13,8 @@ using Microsoft.MixedReality.Toolkit.WindowsMixedReality;
 #endif // (UNITY_WSA && DOTNETWINRT_PRESENT) || WINDOWS_UWP
 
 #if WINDOWS_UWP
-using Windows.Perception;
-using Windows.Perception.People;
-using Windows.UI.Input.Spatial;
-#elif UNITY_WSA && DOTNETWINRT_PRESENT
-using Microsoft.Windows.Perception;
-using Microsoft.Windows.Perception.People;
-using Microsoft.Windows.UI.Input.Spatial;
-#endif
+using WindowsInputSpatial = Windows.UI.Input.Spatial;
+#endif // WINDOWS_UWP
 
 namespace Microsoft.MixedReality.Toolkit.XRSDK.WindowsMixedReality
 {
@@ -46,11 +40,7 @@ namespace Microsoft.MixedReality.Toolkit.XRSDK.WindowsMixedReality
             uint priority = DefaultPriority,
             BaseMixedRealityProfile profile = null) : base(inputSystem, name, priority, profile) { }
 
-        #region IMixedRealityDeviceManager Interface
-
 #if (UNITY_WSA && DOTNETWINRT_PRESENT) || WINDOWS_UWP
-        private IMixedRealityGazeProviderHeadOverride mixedRealityGazeProviderHeadOverride = null;
-
         /// <inheritdoc />
         public override void Enable()
         {
@@ -60,52 +50,25 @@ namespace Microsoft.MixedReality.Toolkit.XRSDK.WindowsMixedReality
             {
                 WindowsMixedRealityUtilities.UtilitiesProvider = new XRSDKWindowsMixedRealityUtilitiesProvider();
             }
-
-            mixedRealityGazeProviderHeadOverride = Service?.GazeProvider as IMixedRealityGazeProviderHeadOverride;
-        }
-
-        /// <inheritdoc />
-        public override void Update()
-        {
-            // Override gaze before base.Update() updates the controllers
-            if (mixedRealityGazeProviderHeadOverride != null && mixedRealityGazeProviderHeadOverride.UseHeadGazeOverride && WindowsMixedRealityUtilities.SpatialCoordinateSystem != null)
-            {
-                SpatialPointerPose pointerPose = SpatialPointerPose.TryGetAtTimestamp(WindowsMixedRealityUtilities.SpatialCoordinateSystem, PerceptionTimestampHelper.FromHistoricalTargetTime(DateTimeOffset.Now));
-                if (pointerPose != null)
-                {
-                    HeadPose head = pointerPose.Head;
-                    if (head != null)
-                    {
-                        mixedRealityGazeProviderHeadOverride.OverrideHeadGaze(head.Position.ToUnityVector3(), head.ForwardDirection.ToUnityVector3());
-                    }
-                }
-            }
-
-            base.Update();
         }
 #endif // (UNITY_WSA && DOTNETWINRT_PRESENT) || WINDOWS_UWP
-
-        #endregion IMixedRealityDeviceManager Interface
 
         #region IMixedRealityCapabilityCheck Implementation
 
         /// <inheritdoc />
         public override bool CheckCapability(MixedRealityCapability capability)
         {
-            if (WindowsApiChecker.IsMethodAvailable(
-                "Windows.UI.Input.Spatial",
-                "SpatialInteractionManager",
-                "IsSourceKindSupported"))
+            if (WindowsApiChecker.UniversalApiContractV8_IsAvailable) // Windows 10 1903 or later
             {
 #if WINDOWS_UWP
                 switch (capability)
                 {
                     case MixedRealityCapability.ArticulatedHand:
                     case MixedRealityCapability.GGVHand:
-                        return SpatialInteractionManager.IsSourceKindSupported(SpatialInteractionSourceKind.Hand);
+                        return WindowsInputSpatial.SpatialInteractionManager.IsSourceKindSupported(WindowsInputSpatial.SpatialInteractionSourceKind.Hand);
 
                     case MixedRealityCapability.MotionController:
-                        return SpatialInteractionManager.IsSourceKindSupported(SpatialInteractionSourceKind.Controller);
+                        return WindowsInputSpatial.SpatialInteractionManager.IsSourceKindSupported(WindowsInputSpatial.SpatialInteractionSourceKind.Controller);
                 }
 #endif // WINDOWS_UWP
             }
@@ -118,7 +81,7 @@ namespace Microsoft.MixedReality.Toolkit.XRSDK.WindowsMixedReality
                 }
                 else
                 {
-                    // Windows Mixed Reality immersive devices support motion controllers
+                    // Windows Mixed Reality Immersive devices support motion controllers
                     return capability == MixedRealityCapability.MotionController;
                 }
             }

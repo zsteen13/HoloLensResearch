@@ -156,7 +156,11 @@ namespace Microsoft.MixedReality.Toolkit.UI
         ///</summary>
         public bool IsTouching
         {
-            get => isTouching;
+            get
+            {
+                return isTouching;
+            }
+
             private set
             {
                 if (value != isTouching)
@@ -186,12 +190,6 @@ namespace Microsoft.MixedReality.Toolkit.UI
         public bool IsPressing { get; private set; }
 
         /// <summary>
-        /// Transform for local to world space in the world direction of a press
-        /// Multiply local scale positions by this value to convert to world space
-        /// </summary>
-        public float LocalToWorldScale => 1.0f / WorldToLocalScale;
-
-        /// <summary>
         /// The press direction of the button as defined by a NearInteractionTouchableSurface.
         /// </summary>
         private Vector3 WorldSpacePressDirection
@@ -210,14 +208,32 @@ namespace Microsoft.MixedReality.Toolkit.UI
 
         private Transform PushSpaceSourceTransform
         {
-            get => movingButtonVisuals != null ? movingButtonVisuals.transform : transform; 
+            get { return movingButtonVisuals != null ? movingButtonVisuals.transform : transform; }
         }
 
         /// <summary>
         /// Transform for world to local space in the world direction of press
         /// Multiply world scale positions by this value to convert to local space
         /// </summary>
-        private float WorldToLocalScale => transform.InverseTransformVector(WorldSpacePressDirection).magnitude;
+        private float WorldToLocalScale
+        {
+            get
+            {
+                return transform.InverseTransformVector(WorldSpacePressDirection).magnitude;
+            }
+        }
+
+        /// <summary>
+        /// Transform for local to world space in the world direction of a press
+        /// Multiply local scale positions by this value to convert to world space
+        /// </summary>
+        private float LocalToWorldScale
+        {
+            get
+            {
+                return 1.0f / WorldToLocalScale;
+            }
+        }
         
         /// <summary>
         /// Initial offset from moving visuals to button
@@ -286,45 +302,37 @@ namespace Microsoft.MixedReality.Toolkit.UI
         {
             if (IsTouching)
             {
-                UpdateTouch();
+                currentPushDistance = GetFarthestDistanceAlongPressDirection();
+
+                UpdateMovingVisualsPosition();
+
+                // Hand Press is only allowed to happen while touching.
+                UpdatePressedState(currentPushDistance);
             }
             else if (currentPushDistance > startPushDistance)
             {
-                RetractButton();
-            }
-        }
+                // Retract the button.
+                float retractDistance = currentPushDistance - startPushDistance;
+                retractDistance = retractDistance - retractDistance * returnSpeed * Time.deltaTime;
 
-        private void UpdateTouch()
-        {
-            currentPushDistance = GetFarthestDistanceAlongPressDirection();
+                // Apply inverse scale of local z-axis. This constant should always have the same value in world units.
+                float localMaxRetractDistanceBeforeReset =
+                    MaxRetractDistanceBeforeReset * WorldSpacePressDirection.magnitude;
+                if (retractDistance < localMaxRetractDistanceBeforeReset)
+                {
+                    currentPushDistance = startPushDistance;
+                }
+                else
+                {
+                    currentPushDistance = startPushDistance + retractDistance;
+                }
 
-            UpdateMovingVisualsPosition();
+                UpdateMovingVisualsPosition();
 
-            // Hand press is only allowed to happen while touching.
-            UpdatePressedState(currentPushDistance);
-        }
-
-        private void RetractButton()
-        {
-            float retractDistance = currentPushDistance - startPushDistance;
-            retractDistance -= retractDistance * returnSpeed * Time.deltaTime;
-
-            // Apply inverse scale of local z-axis. This constant should always have the same value in world units.
-            float localMaxRetractDistanceBeforeReset = MaxRetractDistanceBeforeReset * WorldSpacePressDirection.magnitude;
-            if (retractDistance < localMaxRetractDistanceBeforeReset)
-            {
-                currentPushDistance = startPushDistance;
-            }
-            else
-            {
-                currentPushDistance = startPushDistance + retractDistance;
-            }
-
-            UpdateMovingVisualsPosition();
-
-            if (releaseOnTouchEnd && IsPressing)
-            {
-                UpdatePressedState(currentPushDistance);
+                if (releaseOnTouchEnd && IsPressing)
+                {
+                    UpdatePressedState(currentPushDistance);
+                }
             }
         }
 
@@ -404,10 +412,6 @@ namespace Microsoft.MixedReality.Toolkit.UI
         {
             if (touchPoints.ContainsKey(eventData.Controller))
             {
-                // When focus is lost, before removing controller, update the respective touch point to give a last chance for checking if pressed occurred 
-                touchPoints[eventData.Controller] = eventData.InputData;
-                UpdateTouch();
-
                 touchPoints.Remove(eventData.Controller);
                 currentInputSources.Remove(eventData.InputSource);
 
@@ -429,6 +433,7 @@ namespace Microsoft.MixedReality.Toolkit.UI
             float distance = (distanceSpaceMode == SpaceMode.Local) ? localDistance * LocalToWorldScale : localDistance;
             return InitialPosition + WorldSpacePressDirection.normalized * distance;
         }
+
 
         /// <summary>
         /// Returns the local distance along the push direction for the passed in world position

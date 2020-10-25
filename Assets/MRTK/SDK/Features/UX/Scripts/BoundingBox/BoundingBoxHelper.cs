@@ -47,7 +47,7 @@ namespace Microsoft.MixedReality.Toolkit.UI
         /// </summary>
         /// <param name="colliderBounds">The collider bounds the corner points are calculated from</param>
         /// <param name="boundsPoints">The corner points calculated from the collider points</param>
-        public void UpdateNonAABoundsCornerPositions(BoxCollider colliderBounds, List<Vector3> boundsPoints)
+        internal void UpdateNonAABoundsCornerPositions(BoxCollider colliderBounds, List<Vector3> boundsPoints)
         {
             if (colliderBounds != targetBounds || rawBoundingCornersObtained == false)
             {

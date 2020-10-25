@@ -30,7 +30,7 @@ namespace Microsoft.MixedReality.Toolkit.Input
             {
                 if (simulationService == null)
                 {
-                    simulationService = CoreServices.GetInputSystemDataProvider<IInputSimulationService>();
+                    simulationService = (CoreServices.InputSystem as IMixedRealityDataProviderAccess).GetDataProvider<IInputSimulationService>();
                 }
 
                 return simulationService;
@@ -44,7 +44,7 @@ namespace Microsoft.MixedReality.Toolkit.Input
             {
                 if (recordingService == null)
                 {
-                    recordingService = CoreServices.GetInputSystemDataProvider<IMixedRealityInputRecordingService>();
+                    recordingService = (CoreServices.InputSystem as IMixedRealityDataProviderAccess).GetDataProvider<IMixedRealityInputRecordingService>();
                 }
 
                 return recordingService;
@@ -58,7 +58,7 @@ namespace Microsoft.MixedReality.Toolkit.Input
             {
                 if (playbackService == null)
                 {
-                    playbackService = CoreServices.GetInputSystemDataProvider<IMixedRealityInputPlaybackService>();
+                    playbackService = (CoreServices.InputSystem as IMixedRealityDataProviderAccess).GetDataProvider<IMixedRealityInputPlaybackService>();
                 }
 
                 return playbackService;
@@ -134,7 +134,7 @@ namespace Microsoft.MixedReality.Toolkit.Input
             EditorGUILayout.Space();
 
 // XXX Reloading the scene is currently not supported,
-// due to the life cycle of the MRTK "instance" object (see #4530).
+// due to the life cycle of the MRTK "instance" object (see see #4530).
 // Enable the button below once scene reloading is supported!
 #if false
             using (new GUIEnabledWrapper(Application.isPlaying))

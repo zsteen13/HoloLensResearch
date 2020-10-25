@@ -55,7 +55,7 @@ namespace Microsoft.MixedReality.Toolkit.Utilities.Gltf.Serialization
 
             if (useBackgroundThread) { await BackgroundThread; }
 
-            if (uri.EndsWith(".gltf", StringComparison.OrdinalIgnoreCase))
+            if (uri.EndsWith(".gltf"))
             {
                 string gltfJson = File.ReadAllText(uri);
 
@@ -67,7 +67,7 @@ namespace Microsoft.MixedReality.Toolkit.Utilities.Gltf.Serialization
                     return null;
                 }
             }
-            else if (uri.EndsWith(".glb", StringComparison.OrdinalIgnoreCase))
+            else if (uri.EndsWith(".glb"))
             {
                 byte[] glbData;
 
@@ -134,10 +134,12 @@ namespace Microsoft.MixedReality.Toolkit.Utilities.Gltf.Serialization
             }
 
             gltfObject.Uri = uri;
+            int nameStart = uri.Replace("\\", "/").LastIndexOf("/", StringComparison.Ordinal) + 1;
+            int nameLength = uri.Length - nameStart;
 
             try
             {
-                gltfObject.Name = Path.GetFileNameWithoutExtension(uri);
+                gltfObject.Name = Path.GetFileNameWithoutExtension(uri.Substring(nameStart, nameLength));
             }
             catch (ArgumentException)
             {
@@ -199,7 +201,7 @@ namespace Microsoft.MixedReality.Toolkit.Utilities.Gltf.Serialization
             {
                 for (int j = 0; j < gltfObject.meshes[i].primitives.Length; j++)
                 {
-                    gltfObject.meshes[i].primitives[j].Attributes = new GltfMeshPrimitiveAttributes(StringIntDictionaryFromJson(meshPrimitiveAttributes[primitiveIndex]));
+                    gltfObject.meshes[i].primitives[j].Attributes = JsonUtility.FromJson<GltfMeshPrimitiveAttributes>(meshPrimitiveAttributes[primitiveIndex]);
                     primitiveIndex++;
                 }
             }
@@ -259,9 +261,7 @@ namespace Microsoft.MixedReality.Toolkit.Utilities.Gltf.Serialization
                 return null;
             }
 
-            // Per the spec, "byte length of BIN chunk could be up to 3 bytes bigger than JSON-defined buffer.byteLength to satisfy GLB padding requirements"
-            // https://github.com/KhronosGroup/glTF/blob/master/specification/2.0/README.md#glb-stored-buffer
-            Debug.Assert(gltfObject.buffers[0].byteLength <= chunk1Length && gltfObject.buffers[0].byteLength >= chunk1Length - 3, "chunk 1 & buffer 0 length mismatch");
+            Debug.Assert(gltfObject.buffers[0].byteLength == chunk1Length, "chunk 1 & buffer 0 length mismatch");
 
             gltfObject.buffers[0].BufferData = new byte[chunk1Length];
             Array.Copy(glbData, stride * 7 + chunk0Length, gltfObject.buffers[0].BufferData, 0, chunk1Length);
@@ -284,7 +284,7 @@ namespace Microsoft.MixedReality.Toolkit.Utilities.Gltf.Serialization
 
         private static List<string> GetGltfMeshPrimitiveAttributes(string jsonString)
         {
-            var regex = new Regex("\"attributes\" ?: ?(?<Data>{[^}]+})");
+            var regex = new Regex("(?<Attributes>\"attributes\"[^}]+})");
             return GetGltfMeshPrimitiveAttributes(jsonString, regex);
         }
 
@@ -301,7 +301,7 @@ namespace Microsoft.MixedReality.Toolkit.Utilities.Gltf.Serialization
 
             for (var i = 0; i < matches.Count; i++)
             {
-                jsonObjects.Add(matches[i].Groups["Data"].Captures[0].Value);
+                jsonObjects.Add(matches[i].Groups["Attributes"].Captures[0].Value.Replace("\"attributes\":", string.Empty));
             }
 
             return jsonObjects;
@@ -394,62 +394,5 @@ namespace Microsoft.MixedReality.Toolkit.Utilities.Gltf.Serialization
             jsonString = jsonString.Substring(0, jsonString.IndexOf("\"", StringComparison.Ordinal));
             return jsonString;
         }
-
-        /// <summary>
-        /// A utility function to work around the JsonUtility inability to deserialize to a dictionary.
-        /// </summary>
-        /// <param name="json">JSON string</param>
-        /// <returns>A dictionary with the key value pairs found in the json</returns>
-        private static Dictionary<string, int> StringIntDictionaryFromJson(string json)
-        {
-            string reformatted = JsonDictionaryToArray(json);
-            StringIntKeyValueArray loadedData = JsonUtility.FromJson<StringIntKeyValueArray>(reformatted);
-            Dictionary<string, int> dictionary = new Dictionary<string, int>();
-            for (int i = 0; i < loadedData.items.Length; i++)
-            {
-                dictionary.Add(loadedData.items[i].key, loadedData.items[i].value);
-            }
-            return dictionary;
-        }
-
-        /// <summary>
-        /// Takes a json object string with key value pairs, and returns a json string
-        /// in the format of `{"items": [{"key": $key_name, "value": $value}]}`.
-        /// This format can be handled by JsonUtility and support an arbitrary number
-        /// of key/value pairs
-        /// </summary>
-        /// <param name="json">JSON string in the format `{"key": $value}`</param>
-        /// <returns>Returns a reformatted JSON string</returns>
-        private static string JsonDictionaryToArray(string json)
-        {
-            string reformatted = "{\"items\": [";
-            string pattern = @"""(\w+)"":\s?(""?\w+""?)";
-            RegexOptions options = RegexOptions.Multiline;
-
-            foreach (Match m in Regex.Matches(json, pattern, options))
-            {
-                string key = m.Groups[1].Value;
-                string value = m.Groups[2].Value;
-
-                reformatted += $"{{\"key\":\"{key}\", \"value\":{value}}},";
-            }
-            reformatted = reformatted.TrimEnd(',');
-            reformatted += "]}";
-            return reformatted;
-        }
-
-        [System.Serializable]
-        private class StringKeyValue
-        {
-            public string key = string.Empty;
-            public int value = 0;
-        }
-
-        [System.Serializable]
-        private class StringIntKeyValueArray
-        {
-            public StringKeyValue[] items = Array.Empty<StringKeyValue>();
-        }
-
     }
 }

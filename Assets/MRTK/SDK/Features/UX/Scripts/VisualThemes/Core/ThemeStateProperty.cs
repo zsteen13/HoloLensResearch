@@ -24,8 +24,8 @@ namespace Microsoft.MixedReality.Toolkit.UI
         /// </summary>
         public string Name
         {
-            get => name;
-            set => name = value;
+            get { return name; }
+            set { name = value; }
         }
 
         [FormerlySerializedAs("Type")]
@@ -36,8 +36,8 @@ namespace Microsoft.MixedReality.Toolkit.UI
         /// </summary>
         public ThemePropertyTypes Type
         {
-            get => type;
-            set => type = value;
+            get { return type; }
+            set { type = value; }
         }
 
         [FormerlySerializedAs("Values")]
@@ -48,8 +48,8 @@ namespace Microsoft.MixedReality.Toolkit.UI
         /// </summary>
         public List<ThemePropertyValue> Values
         {
-            get => values;
-            set => values = value;
+            get { return values; }
+            set { values = value; }
         }
 
         [FormerlySerializedAs("StartValue")]
@@ -60,8 +60,8 @@ namespace Microsoft.MixedReality.Toolkit.UI
         /// </summary>
         public ThemePropertyValue StartValue
         {
-            get => startValue;
-            set => startValue = value;
+            get { return startValue; }
+            set { startValue = value; }
         }
 
         [FormerlySerializedAs("Default")]
@@ -72,8 +72,8 @@ namespace Microsoft.MixedReality.Toolkit.UI
         /// </summary>
         public ThemePropertyValue Default
         {
-            get => defaultValue;
-            set => defaultValue = value;
+            get { return defaultValue; }
+            set { defaultValue = value; }
         }
 
         [FormerlySerializedAs("TargetShader")]
@@ -85,8 +85,8 @@ namespace Microsoft.MixedReality.Toolkit.UI
         /// </summary>
         public Shader TargetShader
         {
-            get => targetShader;
-            set => targetShader = value;
+            get { return targetShader; }
+            set { targetShader = value; }
         }
 
         [FormerlySerializedAs("ShaderPropertyName")]
@@ -98,8 +98,8 @@ namespace Microsoft.MixedReality.Toolkit.UI
         /// </summary>
         public string ShaderPropertyName
         {
-            get => shaderPropertyName;
-            set => shaderPropertyName = value;
+            get { return shaderPropertyName; }
+            set { shaderPropertyName = value; }
         }
 
         [System.NonSerialized]

@@ -2,7 +2,6 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System.Collections.Generic;
-using Unity.Profiling;
 
 namespace Microsoft.MixedReality.Toolkit.Input
 {
@@ -39,64 +38,49 @@ namespace Microsoft.MixedReality.Toolkit.Input
             pointerInfos.Remove(pointer);
         }
 
-        private static readonly ProfilerMarker UpdatePerfMarker = new ProfilerMarker("[MRTK] DefaultPrimaryPointerSelector.Update");
-
         virtual public IMixedRealityPointer Update()
         {
-            using (UpdatePerfMarker.Auto())
+            IMixedRealityPointer primaryPointer = null;
+            PointerInfo primaryInfo = null;
+
+            foreach (var keyValue in pointerInfos)
             {
-                IMixedRealityPointer primaryPointer = null;
-                PointerInfo primaryInfo = null;
+                var pointer = keyValue.Key;
+                var info = keyValue.Value;
+                info.Update(pointer);
 
-                foreach (var keyValue in pointerInfos)
+                if (info.IsInteractionEnabled && 
+                    (primaryInfo == null || 
+                    (info.IsPressed && (!primaryInfo.IsPressed || info.PressedTimestamp < primaryInfo.PressedTimestamp)) ||
+                    (!primaryInfo.IsPressed && info.ReleasedTimestamp > primaryInfo.ReleasedTimestamp)))
                 {
-                    var pointer = keyValue.Key;
-                    var info = keyValue.Value;
-                    info.Update(pointer);
-
-                    if (info.IsInteractionEnabled &&
-                        (primaryInfo == null ||
-                        (info.IsPressed && (!primaryInfo.IsPressed || info.PressedTimestamp < primaryInfo.PressedTimestamp)) ||
-                        (!primaryInfo.IsPressed && info.ReleasedTimestamp > primaryInfo.ReleasedTimestamp)))
-                    {
-                        primaryPointer = pointer;
-                        primaryInfo = info;
-                    }
+                    primaryPointer = pointer;
+                    primaryInfo = info;
                 }
-
-                return primaryPointer;
             }
+
+            return primaryPointer;
         }
 
         #endregion IMixedRealityPrimaryPointerSelector
 
         #region IMixedRealityPointerHandler
 
-        private static readonly ProfilerMarker OnPointerDownPerfMarker = new ProfilerMarker("[MRTK] DefaultPrimaryPointerSelector.OnPointerDown");
-
         void IMixedRealityPointerHandler.OnPointerDown(MixedRealityPointerEventData eventData)
         {
-            using (OnPointerDownPerfMarker.Auto())
+            PointerInfo info = null;
+            if (pointerInfos.TryGetValue(eventData.Pointer, out info))
             {
-                PointerInfo info = null;
-                if (pointerInfos.TryGetValue(eventData.Pointer, out info))
-                {
-                    info.IsPressed = true;
-                }
+                info.IsPressed = true;
             }
         }
 
-        private static readonly ProfilerMarker OnPointerUpPerfMarker = new ProfilerMarker("[MRTK] DefaultPrimaryPointerSelector.OnPointerUp");
-
         void IMixedRealityPointerHandler.OnPointerUp(MixedRealityPointerEventData eventData)
         {
-            using (OnPointerUpPerfMarker.Auto())
+            PointerInfo info = null;
+            if (pointerInfos.TryGetValue(eventData.Pointer, out info))
             {
-                PointerInfo info = null;
-                if (pointerInfos.TryGetValue(eventData.Pointer, out info))
-                {
-                    info.IsPressed = false;
-                }
+                info.IsPressed = false;
             }
         }
 

@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-using Microsoft.MixedReality.Toolkit.Windows.Utilities;
+using System.Collections.Generic;
 using UnityEngine;
 
 #if UNITY_WSA && DOTNETWINRT_PRESENT
-using System.Collections.Generic;
-#endif // UNITY_WSA && DOTNETWINRT_PRESENT
+using Microsoft.Windows.Foundation.Metadata;
+#endif
 
 namespace Microsoft.MixedReality.Toolkit.WindowsMixedReality
 {
@@ -23,10 +23,7 @@ namespace Microsoft.MixedReality.Toolkit.WindowsMixedReality
 #if UNITY_WSA && DOTNETWINRT_PRESENT
         private readonly Dictionary<uint, bool> cameraIdToSupportsAutoPlanar = new Dictionary<uint, bool>();
 
-        private static readonly bool isDepthReprojectionModeSupported = WindowsApiChecker.IsPropertyAvailable(
-            "Windows.Graphics.Holographic",
-            "HolographicCameraRenderingParameters",
-            "DepthReprojectionMethod");
+        private static readonly bool isDepthReprojectionModeSupported = ApiInformation.IsPropertyPresent("Windows.Graphics.Holographic.HolographicCameraRenderingParameters", "DepthReprojectionMethod");
 
         private void OnPostRender()
         {

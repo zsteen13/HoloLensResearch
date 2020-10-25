@@ -14,7 +14,7 @@ namespace Microsoft.MixedReality.Toolkit.Utilities.Editor
     /// </summary>
     public static class InspectorUIUtility
     {
-        // Colors
+        //Colors
         private static readonly Color PersonalThemeColorTint100 = new Color(1f, 1f, 1f);
         private static readonly Color PersonalThemeColorTint75 = new Color(0.75f, 0.75f, 0.75f);
         private static readonly Color PersonalThemeColorTint50 = new Color(0.5f, 0.5f, 0.5f);
@@ -158,7 +158,7 @@ namespace Microsoft.MixedReality.Toolkit.Utilities.Editor
         /// </summary>
         /// <param name="docURL">documentation URL to open on button click</param>
         /// <returns>true if button clicked, false otherwise</returns>
-        public static bool RenderDocumentationButton(string docURL, float width = DocLinkWidth)
+        public static bool RenderDocumentationButton(string docURL)
         {
             if (!string.IsNullOrEmpty(docURL))
             {
@@ -172,7 +172,7 @@ namespace Microsoft.MixedReality.Toolkit.Utilities.Editor
                 // The documentation button should always be enabled.
                 using (new GUIEnabledWrapper())
                 {
-                    if (GUILayout.Button(buttonContent, EditorStyles.miniButton, GUILayout.MaxWidth(width)))
+                    if (GUILayout.Button(buttonContent, EditorStyles.miniButton, GUILayout.MaxWidth(DocLinkWidth)))
                     {
                         Application.OpenURL(docURL);
                         return true;
@@ -430,10 +430,9 @@ namespace Microsoft.MixedReality.Toolkit.Utilities.Editor
             Color prevColor = GUI.color;
 
             GUI.color = ColorTint100;
-            using (new EditorGUILayout.VerticalScope(EditorStyles.textArea))
-            {
-                EditorGUILayout.LabelField(notice, EditorStyles.wordWrappedMiniLabel);
-            }
+            EditorGUILayout.BeginVertical(EditorStyles.textArea);
+            EditorGUILayout.LabelField(notice, EditorStyles.wordWrappedMiniLabel);
+            EditorGUILayout.EndVertical();
 
             GUI.color = prevColor;
         }

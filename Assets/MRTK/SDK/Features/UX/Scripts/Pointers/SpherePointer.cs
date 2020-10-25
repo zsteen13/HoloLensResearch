@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using Microsoft.MixedReality.Toolkit;
 using Microsoft.MixedReality.Toolkit.Physics;
 using Microsoft.MixedReality.Toolkit.Utilities;
-using Unity.Profiling;
 using UnityEngine;
 
 namespace Microsoft.MixedReality.Toolkit.Input
@@ -14,9 +14,9 @@ namespace Microsoft.MixedReality.Toolkit.Input
         private SceneQueryType raycastMode = SceneQueryType.SphereOverlap;
 
         /// <inheritdoc />
-        public override SceneQueryType SceneQueryType
-        {
-            get => raycastMode;
+        public override SceneQueryType SceneQueryType 
+        { 
+            get => raycastMode; 
             set => raycastMode = value;
         }
 
@@ -24,7 +24,6 @@ namespace Microsoft.MixedReality.Toolkit.Input
         [Min(0.0f)]
         [Tooltip("Additional distance on top of sphere cast radius when pointer is considered 'near' an object and far interaction will turn off")]
         private float nearObjectMargin = 0.2f;
-
         /// <summary>
         /// Additional distance on top of<see cref="BaseControllerPointer.SphereCastRadius"/> when pointer is considered 'near' an object and far interaction will turn off.
         /// </summary>
@@ -44,7 +43,6 @@ namespace Microsoft.MixedReality.Toolkit.Input
         [SerializeField]
         [Tooltip("The LayerMasks, in prioritized order, that are used to determine the grabbable objects. Remember to also add NearInteractionGrabbable! Only collidables with NearInteractionGrabbable will raise events.")]
         private LayerMask[] grabLayerMasks = { UnityEngine.Physics.DefaultRaycastLayers };
-
         /// <summary>
         /// The LayerMasks, in prioritized order, that are used to determine the touchable objects.
         /// </summary>
@@ -56,17 +54,16 @@ namespace Microsoft.MixedReality.Toolkit.Input
         [SerializeField]
         [Tooltip("Specify whether queries for grabbable objects hit triggers.")]
         protected QueryTriggerInteraction triggerInteraction = QueryTriggerInteraction.UseGlobal;
-
         /// <summary>
         /// Specify whether queries for grabbable objects hit triggers.
         /// </summary>
         public QueryTriggerInteraction TriggerInteraction => triggerInteraction;
 
+
         [SerializeField]
         [Tooltip("Maximum number of colliders that can be detected in a scene query.")]
         [Min(1)]
         private int sceneQueryBufferSize = 64;
-
         /// <summary>
         /// Maximum number of colliders that can be detected in a scene query.
         /// </summary>
@@ -75,7 +72,6 @@ namespace Microsoft.MixedReality.Toolkit.Input
         [SerializeField]
         [Tooltip("Whether to ignore colliders that may be near the pointer, but not actually in the visual FOV. This can prevent accidental grabs, and will allow hand rays to turn on when you may be near a grabbable but cannot see it. Visual FOV is defined by cone centered about display center, radius equal to half display height.")]
         private bool ignoreCollidersNotInFOV = true;
-
         /// <summary>
         /// Whether to ignore colliders that may be near the pointer, but not actually in the visual FOV.
         /// This can prevent accidental grabs, and will allow hand rays to turn on when you may be near 
@@ -96,7 +92,10 @@ namespace Microsoft.MixedReality.Toolkit.Input
         /// Uses SphereCastRadius + NearObjectMargin to determine if near an object.
         /// </summary>
         /// <returns>True if the pointer is near any collider that's both on a grabbable layer mask, and has a NearInteractionGrabbable.</returns>
-        public bool IsNearObject => queryBufferNearObjectRadius.ContainsGrabbable;
+        public bool IsNearObject
+        {
+            get => queryBufferNearObjectRadius.ContainsGrabbable();
+        }
 
         /// <summary>
         /// Test if the pointer is within the grabbable radius of collider that's both on a grabbable layer mask, and has a NearInteractionGrabbable.
@@ -104,7 +103,17 @@ namespace Microsoft.MixedReality.Toolkit.Input
         /// Note: if focus on pointer is locked, will always return true.
         /// </summary>
         /// <returns>True if the pointer is within the grabbable radius of collider that's both on a grabbable layer mask, and has a NearInteractionGrabbable.</returns>
-        public override bool IsInteractionEnabled => IsFocusLocked || (base.IsInteractionEnabled && queryBufferInteractionRadius.ContainsGrabbable);
+        public override bool IsInteractionEnabled
+        {
+            get
+            {
+                if (IsFocusLocked)
+                {
+                    return true;
+                }
+                return base.IsInteractionEnabled && queryBufferInteractionRadius.ContainsGrabbable();
+            }
+        }
 
         private void Awake()
         {
@@ -112,45 +121,39 @@ namespace Microsoft.MixedReality.Toolkit.Input
             queryBufferInteractionRadius = new SpherePointerQueryInfo(sceneQueryBufferSize, SphereCastRadius);
         }
 
-        private static readonly ProfilerMarker OnPreSceneQueryPerfMarker = new ProfilerMarker("[MRTK] SpherePointer.OnPreSceneQuery");
-
         /// <inheritdoc />
         public override void OnPreSceneQuery()
         {
-            using (OnPreSceneQueryPerfMarker.Auto())
+            if (Rays == null)
             {
-                if (Rays == null)
+                Rays = new RayStep[1];
+            }
+
+            Vector3 pointerPosition;
+            if (TryGetNearGraspPoint(out pointerPosition))
+            {
+                Vector3 endPoint = Vector3.forward * SphereCastRadius;
+                Rays[0].UpdateRayStep(ref pointerPosition, ref endPoint);
+
+                var layerMasks = PrioritizedLayerMasksOverride ?? GrabLayerMasks;
+
+                for (int i = 0; i < layerMasks.Length; i++)
                 {
-                    Rays = new RayStep[1];
+                    if (queryBufferNearObjectRadius.TryUpdateQueryBufferForLayerMask(layerMasks[i], pointerPosition, triggerInteraction, ignoreCollidersNotInFOV))
+                    {
+                        break;
+                    }
                 }
 
-                Vector3 pointerPosition;
-                if (TryGetNearGraspPoint(out pointerPosition))
+                for (int i = 0; i < layerMasks.Length; i++)
                 {
-                    Vector3 endPoint = Vector3.forward * SphereCastRadius;
-                    Rays[0].UpdateRayStep(ref pointerPosition, ref endPoint);
-                    PrioritizedLayerMasksOverride = PrioritizedLayerMasksOverride ?? GrabLayerMasks;
-
-                    for (int i = 0; i < PrioritizedLayerMasksOverride.Length; i++)
+                    if (queryBufferInteractionRadius.TryUpdateQueryBufferForLayerMask(layerMasks[i], pointerPosition, triggerInteraction, ignoreCollidersNotInFOV))
                     {
-                        if (queryBufferNearObjectRadius.TryUpdateQueryBufferForLayerMask(PrioritizedLayerMasksOverride[i], pointerPosition, triggerInteraction, ignoreCollidersNotInFOV))
-                        {
-                            break;
-                        }
-                    }
-
-                    for (int i = 0; i < PrioritizedLayerMasksOverride.Length; i++)
-                    {
-                        if (queryBufferInteractionRadius.TryUpdateQueryBufferForLayerMask(PrioritizedLayerMasksOverride[i], pointerPosition, triggerInteraction, ignoreCollidersNotInFOV))
-                        {
-                            break;
-                        }
+                        break;
                     }
                 }
             }
         }
-
-        private static readonly ProfilerMarker TryGetNearGraspPointPerfMarker = new ProfilerMarker("[MRTK] SpherePointer.TryGetNearGraspPoint");
 
         /// <summary>
         /// Gets the position of where grasp happens
@@ -159,80 +162,65 @@ namespace Microsoft.MixedReality.Toolkit.Input
         /// </summary>
         public bool TryGetNearGraspPoint(out Vector3 result)
         {
-            using (TryGetNearGraspPointPerfMarker.Auto())
+            // If controller is of kind IMixedRealityHand, return average of index and thumb
+            if (Controller != null && Controller is IMixedRealityHand)
             {
-                if (Controller != null)
+                var hand = Controller as IMixedRealityHand;
+                hand.TryGetJoint(TrackedHandJoint.IndexTip, out MixedRealityPose index);
+                if (index != null)
                 {
-                    // If controller is of kind IMixedRealityHand, return average of index and thumb
-                    if (Controller is IMixedRealityHand hand)
+                    hand.TryGetJoint(TrackedHandJoint.ThumbTip, out MixedRealityPose thumb);
+                    if (thumb != null)
                     {
-                        if (hand.TryGetJoint(TrackedHandJoint.IndexTip, out MixedRealityPose index) && index != null)
-                        {
-                            if (hand.TryGetJoint(TrackedHandJoint.ThumbTip, out MixedRealityPose thumb) && thumb != null)
-                            {
-                                result = 0.5f * (index.Position + thumb.Position);
-                                return true;
-                            }
-                        }
-                    }
-
-                    // If controller isn't an IMixedRealityHand or one of the required joints isn't available, check for position
-                    if (Controller.IsPositionAvailable)
-                    {
-                        result = Position;
+                        result = 0.5f * (index.Position + thumb.Position);
                         return true;
                     }
                 }
-
-                result = Vector3.zero;
-                return false;
             }
-        }
+            else
+            {
+                result = Position;
+                return true;
+            }
 
-        private static readonly ProfilerMarker TryGetDistanceToNearestSurfacePerfMarker = new ProfilerMarker("[MRTK] SpherePointer.TryGetDistanceToNearestSurface");
+            result = Vector3.zero;
+            return false;
+        }
 
         /// <inheritdoc />
         public bool TryGetDistanceToNearestSurface(out float distance)
         {
-            using (TryGetDistanceToNearestSurfacePerfMarker.Auto())
+            var focusProvider = CoreServices.InputSystem?.FocusProvider;
+            if (focusProvider != null)
             {
-                var focusProvider = CoreServices.InputSystem?.FocusProvider;
-                if (focusProvider != null)
+                FocusDetails focusDetails;
+                if (focusProvider.TryGetFocusDetails(this, out focusDetails))
                 {
-                    FocusDetails focusDetails;
-                    if (focusProvider.TryGetFocusDetails(this, out focusDetails))
-                    {
-                        distance = focusDetails.RayDistance;
-                        return true;
-                    }
+                    distance = focusDetails.RayDistance;
+                    return true;
                 }
-
-                distance = 0.0f;
-                return false;
             }
-        }
 
-        private static readonly ProfilerMarker TryGetNormalToNearestSurfacePerfMarker = new ProfilerMarker("[MRTK] SpherePointer.TryGetNormalToNearestSurface");
+            distance = 0.0f;
+            return false;
+        }
 
         /// <inheritdoc />
         public bool TryGetNormalToNearestSurface(out Vector3 normal)
         {
-            using (TryGetNormalToNearestSurfacePerfMarker.Auto())
+            var focusProvider = CoreServices.InputSystem?.FocusProvider;
+            if (focusProvider != null)
             {
-                var focusProvider = CoreServices.InputSystem?.FocusProvider;
-                if (focusProvider != null)
+                FocusDetails focusDetails;
+                if (focusProvider.TryGetFocusDetails(this, out focusDetails))
                 {
-                    FocusDetails focusDetails;
-                    if (focusProvider.TryGetFocusDetails(this, out focusDetails))
-                    {
-                        normal = focusDetails.Normal;
-                        return true;
-                    }
+                    normal = focusDetails.Normal;
+                    return true;
                 }
-
-                normal = Vector3.forward;
-                return false;
             }
+
+            normal = Vector3.forward;
+            return false;
         }
 
         /// <summary>
@@ -248,12 +236,12 @@ namespace Microsoft.MixedReality.Toolkit.Input
             /// <summary>
             /// Fixed-length array used to story physics queries
             /// </summary>
-            private readonly Collider[] queryBuffer;
+            private Collider[] queryBuffer;
 
             /// <summary>
             /// Distance for performing queries.
             /// </summary>
-            private readonly float queryRadius;
+            private float queryRadius;
 
             /// <summary>
             /// The grabbable near the QueryRadius. 
@@ -266,8 +254,6 @@ namespace Microsoft.MixedReality.Toolkit.Input
                 queryBuffer = new Collider[bufferSize];
                 queryRadius = radius;
             }
-
-            private static readonly ProfilerMarker TryUpdateQueryBufferForLayerMaskPerfMarker = new ProfilerMarker("[MRTK] SpherePointerQueryInfo.TryUpdateQueryBufferForLayerMask");
 
             /// <summary>
             /// Intended to be called once per frame, this method performs a sphere intersection test against
@@ -282,54 +268,53 @@ namespace Microsoft.MixedReality.Toolkit.Input
             /// <param name="ignoreCollidersNotInFOV">Whether to ignore colliders that are not visible.</param>
             public bool TryUpdateQueryBufferForLayerMask(LayerMask layerMask, Vector3 pointerPosition, QueryTriggerInteraction triggerInteraction, bool ignoreCollidersNotInFOV)
             {
-                using (TryUpdateQueryBufferForLayerMaskPerfMarker.Auto())
+                grabbable = null;
+                numColliders = UnityEngine.Physics.OverlapSphereNonAlloc(
+                    pointerPosition,
+                    queryRadius,
+                    queryBuffer,
+                    layerMask,
+                    triggerInteraction);
+
+                if (numColliders == queryBuffer.Length)
                 {
-                    grabbable = null;
-                    numColliders = UnityEngine.Physics.OverlapSphereNonAlloc(
-                        pointerPosition,
-                        queryRadius,
-                        queryBuffer,
-                        layerMask,
-                        triggerInteraction);
+                    Debug.LogWarning($"Maximum number of {numColliders} colliders found in SpherePointer overlap query. Consider increasing the query buffer size in the pointer profile.");
+                }
 
-                    if (numColliders == queryBuffer.Length)
+                Camera mainCam = CameraCache.Main;
+                for (int i = 0; i < numColliders; i++)
+                {
+                    Collider collider = queryBuffer[i];
+                    grabbable = collider.GetComponent<NearInteractionGrabbable>();
+                    if (grabbable != null)
                     {
-                        Debug.LogWarning($"Maximum number of {numColliders} colliders found in SpherePointer overlap query. Consider increasing the query buffer size in the pointer profile.");
-                    }
-
-                    Camera mainCam = CameraCache.Main;
-                    for (int i = 0; i < numColliders; i++)
-                    {
-                        Collider collider = queryBuffer[i];
-                        grabbable = collider.GetComponent<NearInteractionGrabbable>();
-                        if (grabbable != null)
+                        if (ignoreCollidersNotInFOV)
                         {
-                            if (ignoreCollidersNotInFOV)
+                            if (!mainCam.IsInFOVCached(collider))
                             {
-                                if (!mainCam.IsInFOVCached(collider))
-                                {
-                                    // Additional check: is grabbable in the camera frustrum
-                                    // We do this so that if grabbable is not visible it is not accidentally grabbed
-                                    // Also to not turn off the hand ray if hand is near a grabbable that's not actually visible
-                                    grabbable = null;
-                                }
+                                // Additional check: is grabbable in the camera frustrum
+                                // We do this so that if grabbable is not visible it is not accidentally grabbed
+                                // Also to not turn off the hand ray if hand is near a grabbable that's not actually visible
+                                grabbable = null;
                             }
                         }
-
-                        if (grabbable != null)
-                        {
-                            return true;
-                        }
                     }
 
-                    return false;
+                    if (grabbable != null)
+                    {
+                        return true;
+                    }
                 }
+                return false;
             }
 
             /// <summary>
             /// Returns true if any of the objects inside QueryBuffer contain a grabbable
             /// </summary>
-            public bool ContainsGrabbable => grabbable != null;
+            public bool ContainsGrabbable()
+            {
+                return grabbable != null;
+            }
         }
     }
 }

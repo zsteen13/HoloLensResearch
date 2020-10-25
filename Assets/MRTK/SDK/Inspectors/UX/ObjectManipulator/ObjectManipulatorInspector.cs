@@ -3,14 +3,16 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 //
 
+using Microsoft.MixedReality.Toolkit.Experimental.UI;
 using Microsoft.MixedReality.Toolkit.UI;
 using Microsoft.MixedReality.Toolkit.Utilities;
 using System;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.UI;
 
-namespace Microsoft.MixedReality.Toolkit.Editor
+namespace Microsoft.MixedReality.Toolkit.Experimental.Editor
 {
     /// <summary>
     /// A custom inspector for ObjectManipulator used to separate

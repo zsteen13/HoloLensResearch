@@ -11,17 +11,22 @@ namespace Microsoft.MixedReality.Toolkit.Utilities
     /// the "MixedRealityToolkit/Standard" shader "_HoverLight" feature.
     /// </summary>
     [ExecuteInEditMode]
-    [HelpURL("https://microsoft.github.io/MixedRealityToolkit-Unity/Documentation/Rendering/HoverLight.html")]
     [AddComponentMenu("Scripts/MRTK/Core/HoverLight")]
     public class HoverLight : MonoBehaviour
     {
-        // Two hover lights are supported at this time.
-        private const int hoverLightCount = 2;
+        // Three hover lights are supported at this time.
+        private const int hoverLightCount = 3;
         private const int hoverLightDataSize = 2;
+        private const string multiHoverLightKeyword = "_MULTI_HOVER_LIGHT";
         private static List<HoverLight> activeHoverLights = new List<HoverLight>(hoverLightCount);
         private static Vector4[] hoverLightData = new Vector4[hoverLightCount * hoverLightDataSize];
         private static int _HoverLightDataID;
         private static int lastHoverLightUpdate = -1;
+
+        /// <summary>
+        /// Specifies the Radius of the HoverLight effect
+        /// </summary>
+        public float Radius => radius;
 
         [Tooltip("Specifies the radius of the HoverLight effect")]
         [SerializeField]
@@ -29,26 +34,13 @@ namespace Microsoft.MixedReality.Toolkit.Utilities
         private float radius = 0.15f;
 
         /// <summary>
-        /// Specifies the Radius of the HoverLight effect
+        /// Specifies the highlight color
         /// </summary>
-        public float Radius
-        {
-            get => radius;
-            set => radius = value;
-        }
+        public Color Color => color;
 
         [Tooltip("Specifies the highlight color")]
         [SerializeField]
         private Color color = new Color(0.3f, 0.3f, 0.3f, 1.0f);
-
-        /// <summary>
-        /// Specifies the highlight color
-        /// </summary>
-        public Color Color
-        {
-            get => color;
-            set => color = value;
-        }
 
         private void OnEnable()
         {
@@ -126,6 +118,15 @@ namespace Microsoft.MixedReality.Toolkit.Utilities
             if (!forceUpdate && (Time.frameCount == lastHoverLightUpdate))
             {
                 return;
+            }
+
+            if (activeHoverLights.Count > 1)
+            {
+                Shader.EnableKeyword(multiHoverLightKeyword);
+            }
+            else
+            {
+                Shader.DisableKeyword(multiHoverLightKeyword);
             }
 
             for (int i = 0; i < hoverLightCount; ++i)

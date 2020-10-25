@@ -6,7 +6,7 @@ using UnityEngine;
 namespace Microsoft.MixedReality.Toolkit.Input
 {
     /// <summary>
-    /// Class for manually controlling the camera in the Unity editor. Used by the Input Simulation Service.
+    /// Class for manually controlling the camera in the Unity editor. Attach to the MainCamera object.
     /// </summary>
     public class ManualCameraControl
     {
@@ -99,7 +99,7 @@ namespace Microsoft.MixedReality.Toolkit.Input
             deltaPosition += InputCurve(UnityEngine.Input.GetAxis(profile.MoveUpDown)) * up;
 
             float accel = KeyInputSystem.GetKey(profile.FastControlKey) ? profile.ControlFastSpeed : profile.ControlSlowSpeed;
-            return accel * deltaPosition * Time.deltaTime;
+            return accel * deltaPosition;
         }
 
         private Vector3 GetCameraControlRotation(MouseDelta mouseDelta)

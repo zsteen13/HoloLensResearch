@@ -157,12 +157,8 @@ namespace Microsoft.MixedReality.Toolkit.Input
                 return;
             }
 
-            bool newMesh = handMeshFilter == null;
-
-            if (newMesh &&
-                CoreServices.InputSystem?.InputSystemProfile != null &&
-                CoreServices.InputSystem.InputSystemProfile.HandTrackingProfile != null &&
-                CoreServices.InputSystem.InputSystemProfile.HandTrackingProfile.HandMeshPrefab != null)
+            if (handMeshFilter == null &&
+                CoreServices.InputSystem?.InputSystemProfile?.HandTrackingProfile?.HandMeshPrefab != null)
             {
                 handMeshFilter = Instantiate(CoreServices.InputSystem.InputSystemProfile.HandTrackingProfile.HandMeshPrefab).GetComponent<MeshFilter>();
                 lastHandMeshVertices = handMeshFilter.mesh.vertices;
@@ -177,10 +173,9 @@ namespace Microsoft.MixedReality.Toolkit.Input
                 // In order to update the vertices when the array sizes change, the mesh
                 // must be cleared per instructions here:
                 // https://docs.unity3d.com/ScriptReference/Mesh.html
-                if ((lastHandMeshVertices == null && eventData.InputData.vertices != null) ||
-                    (lastHandMeshVertices != null &&
+                if (lastHandMeshVertices != null &&
                     lastHandMeshVertices.Length != 0 &&
-                    lastHandMeshVertices.Length != eventData.InputData.vertices?.Length))
+                    lastHandMeshVertices.Length != eventData.InputData.vertices?.Length)
                 {
                     meshChanged = true;
                     mesh.Clear();
@@ -188,16 +183,12 @@ namespace Microsoft.MixedReality.Toolkit.Input
 
                 mesh.vertices = eventData.InputData.vertices;
                 mesh.normals = eventData.InputData.normals;
+                mesh.triangles = eventData.InputData.triangles;
                 lastHandMeshVertices = eventData.InputData.vertices;
 
-                if (newMesh || meshChanged)
-                {                    
-                    mesh.triangles = eventData.InputData.triangles;
-
-                    if (eventData.InputData.uvs?.Length > 0)
-                    {
-                        mesh.uv = eventData.InputData.uvs;
-                    }
+                if (eventData.InputData.uvs != null && eventData.InputData.uvs.Length > 0)
+                {
+                    mesh.uv = eventData.InputData.uvs;
                 }
 
                 if (meshChanged)

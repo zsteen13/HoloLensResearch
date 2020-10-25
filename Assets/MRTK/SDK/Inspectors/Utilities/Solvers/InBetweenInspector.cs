@@ -8,7 +8,6 @@ using UnityEngine;
 namespace Microsoft.MixedReality.Toolkit.Utilities.Editor.Solvers
 {
     [CustomEditor(typeof(InBetween))]
-    [CanEditMultipleObjects]
     public class InBetweenEditor : SolverInspector
     {
         private SerializedProperty secondTrackedTargetTypeProperty;

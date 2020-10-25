@@ -35,11 +35,6 @@ namespace Microsoft.MixedReality.Toolkit.UI
         Task OpenAsync();
 
         /// <summary>
-        /// Returns after progress indicator completes its opening or closing transition.
-        /// </summary>
-        Task AwaitTransitionAsync();
-
-        /// <summary>
         /// Closes the progress indicator after loading is finished. Method is async to allow for animation to complete.
         /// </summary>
         Task CloseAsync();

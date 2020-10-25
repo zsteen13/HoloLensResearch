@@ -285,7 +285,7 @@ namespace Microsoft.MixedReality.Toolkit.UI
         {
             SetAffordancesActive(false);
 
-            // Check for boxcollider
+            //check for boxcollider
             boxCollider = GetComponent<BoxCollider>();
             if (boxCollider == null)
             {
@@ -301,7 +301,7 @@ namespace Microsoft.MixedReality.Toolkit.UI
                 }
             }
 
-            // Get material
+            //get material
             currentMaterial = this.gameObject.GetComponent<Renderer>().material;
             proximityLightCenterColorID = Shader.PropertyToID("_ProximityLightCenterColorOverride");
             bool materialValid = currentMaterial != null && currentMaterial.HasProperty(proximityLightCenterColorID);
@@ -309,7 +309,7 @@ namespace Microsoft.MixedReality.Toolkit.UI
                 currentMaterial.GetColor(proximityLightCenterColorID) :
                 new Color(0.0f, 0.0f, 0.0f, 0.0f);
 
-            // Precache references
+            //precache references
             meshFilter = gameObject.GetComponent<MeshFilter>();
             if (meshFilter == null)
             {
@@ -357,20 +357,20 @@ namespace Microsoft.MixedReality.Toolkit.UI
 
                 currentScale = totalUVScale.x / scaleUVDelta;
 
-                // Test for scale limits
+                //test for scale limits
                 if (currentScale > minScale && currentScale < maxScale)
                 {
-                    // Track total scale
+                    //track total scale
                     totalUVScale /= scaleUVDelta;
                     for (int i = 0; i < uvs.Count; ++i)
                     {
-                        // This is where zoom is applied if Active
+                        //this is where zoom is applied if Active
                         uvs[i] = ((uvs[i] - scaleUVCentroid) / scaleUVDelta) + scaleUVCentroid;
                     }
                 }
             }
 
-            // Test for pan limits
+            //test for pan limits
             Vector2 uvDelta = new Vector2(totalUVOffset.x, -totalUVOffset.y);
             if (!unlimitedPan)
             {
@@ -412,6 +412,8 @@ namespace Microsoft.MixedReality.Toolkit.UI
             }
 
             float uvScaleFromTouches = GetContactDistance() / initialTouchDistance;
+            //uvScaleFromTouches = Mathf.Clamp(uvScaleFromTouches, 0.5f, 2.0f);
+
             return uvScaleFromTouches;
         }
         private void UpdateTouchUVOffset(uint sourceId)
@@ -603,7 +605,7 @@ namespace Microsoft.MixedReality.Toolkit.UI
             {
                 Vector3 verticalEdgeNorm = (lowerLeft - upperLeft) / magVertical;
                 Vector3 horizontalEdgeNorm = (upperRight - upperLeft) / magHorizontal;
-                // Get dotproduct to determine distance ->then divide by length to get quad coord 0 to 1
+                //get dotproduct to determine distance ->then divide by length to get quad coord 0 to 1
                 float v = Vector3.Dot(point - upperLeft, verticalEdgeNorm) / magVertical;
                 float h = Vector3.Dot(point - upperLeft, horizontalEdgeNorm) / magHorizontal;
                 quadCoord = new Vector2(h, v);
@@ -638,7 +640,7 @@ namespace Microsoft.MixedReality.Toolkit.UI
                     data.touchingPoint = data.touchingInitialPt;
                 }
             }
-            else // Is far
+            else//is far
             {
                 if (data.currentPointer is GGVPointer)
                 {
@@ -658,7 +660,7 @@ namespace Microsoft.MixedReality.Toolkit.UI
                 }              
             }
 
-            // Store value in case of MRController
+            //store value in case of MRController
             if (data.currentPointer != null)
             {
                 Vector3 pt = data.currentPointer.Position;
