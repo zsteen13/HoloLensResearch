@@ -6,8 +6,6 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/TestScene.unity
-    guid: 26e75e35db728174c8736b9a2a920f51
-  m_configObjects:
-    com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 8de1f79268fd17c42a69f1930ae905f0,
-      type: 2}
+    path: Assets/Scenes/Robot.unity
+    guid: 9e1390d407fec4e4fb393a23d4d007d8
+  m_configObjects: {}
